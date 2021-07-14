@@ -1,5 +1,6 @@
 {
     "common": {
+        "description": "Descrição",
         "money_type": "R$",
         "months": {
             "0": "Janeiro",

@@ -1,20 +1,40 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import NumberFormat from 'react-number-format';
-import { Table } from 'react-bootstrap';
+import { Table, Nav } from 'react-bootstrap';
 
 const MessageEnum = Object.freeze({
-    AUTH: 0,
     ACCOUNTS: 1,
     YEAR: 2
 })
 const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
 
+function getListYear(fromDate) {
+    const years = [];
+    const nowYear = new Date().getFullYear();
+    const yearDiff = (nowYear - fromDate);
+    let j = 10 - yearDiff;
+    if (j <= 0) {
+        j = 1;
+    }
+    for (let i = fromDate - j; i <= fromDate; i++) {
+        years.push(i);
+    }
+    if (fromDate < nowYear) {
+        for (let i = fromDate + 1; i <= nowYear; i++) {
+            years.push(i);
+        }
+    }
+    return years;
+}
+
 export const WebSocketComponent = ({ t }) => {
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
+    const [listYears, setListYears] = useState('')
+    const [actualYear, setActualYear] = useState('')
     const messageHistory = useRef([]);
 
     const {
@@ -36,14 +56,15 @@ export const WebSocketComponent = ({ t }) => {
             setSocketUrl(SOCKET_URL + PATH)
         }
     });
+
+    function changeActualYear(year) {
+        sendJsonMessage({
+            code: MessageEnum.YEAR,
+            year
+        });
+    }
+
     const RECEIVERS = Object.freeze({
-        [MessageEnum.AUTH]: ({ status, user }) => {
-            console.log(status, user)
-            sendJsonMessage({
-                code: MessageEnum.YEAR,
-                year: new Date().getFullYear()
-            })
-        },
         [MessageEnum.ACCOUNTS]: ({ accounts }) => {
             const tThead = []
             const tAccounts = []
@@ -99,6 +120,19 @@ export const WebSocketComponent = ({ t }) => {
                 )
             }
             setTableAccounts(tAccounts)
+        },
+        [MessageEnum.YEAR]: ({ year }) => {
+            setActualYear(year)
+            const years = getListYear(year)
+            const lYears = []
+            for (const y of years) {
+                lYears.push(
+                    <Nav.Item>
+                        <Nav.Link eventKey={y} onSelect={() => changeActualYear(y)}>{y}</Nav.Link>
+                    </Nav.Item>
+                )
+            }
+            setListYears(lYears)
         }
     })
 
@@ -118,10 +152,13 @@ export const WebSocketComponent = ({ t }) => {
     }, [])
     return (
         <div>
+            <Nav variant="tabs" activeKey={actualYear}>
+                {listYears}
+            </Nav>
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>common.description</th>
+                        <th>{t(`common.description`)}</th>
                         {tableThead}
                     </tr>
                 </thead>
