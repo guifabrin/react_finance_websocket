@@ -1,21 +1,137 @@
 {
+    "app": {
+        "name": "Illuminati",
+        "dark": "Escurecer",
+        "light": "Clarear"
+    },
+    "accounts": {
+        "title": "Contas",
+        "account": "conta",
+        "is_credit_card": "Cart\u00e3o de cr\u00e9dito",
+        "prefer_debit_account": "Conta preferida de d\u00e9bito",
+        "not_your_account": "A conta selecionada n\u00e3o \u00e9 sua",
+        "confirm_destroy": "Confirma\u00e7\u00e3o\r\npara remover conta",
+        "confirmation_text": "Tem certeza que deseja remover a conta {id}\/{description}?",
+        "amount": "Saldo",
+        "end_month_amount": "Saldo fim do m\u00eas",
+        "totals": "Total final",
+        "totals_paid": "Total pago",
+        "totals_not_paid": "Total n\u00e3o pago",
+        "balance": "Saldo",
+        "avg_max": "M\u00e9dia de recebimento por dia",
+        "avg_min": "M\u00e9dia de gasto por dia",
+        "avg_avg": "M\u00e9dia por dia"
+    },
+    "auth": {
+        "failed": "As credenciais n\u00e3o condizem com nossos registros.",
+        "throttle": "Muitas tentativas de login. Por favor tente novamente em :seconds segundos."
+    },
     "common": {
-        "description": "Descrição",
+        "id": "C\u00f3digo",
+        "description": "Descri\u00e7\u00e3o",
+        "edit": "Editar",
+        "add": "Adicionar",
+        "remove": "Remover",
+        "actions": "A\u00e7\u00f5es",
+        "none": "Nenhum(a)",
+        "back": "Voltar",
+        "save": "Salvar",
+        "description_required": "Descri\u00e7\u00e3o n\u00e3o pode ficar em branco",
+        "description_min_5": "Descri\u00e7\u00e3o n\u00e3o pode ter menos que 5 caracteres",
+        "description_max_50": "Descri\u00e7\u00e3o n\u00e3o pode ter mais que 50 caracteres",
+        "date": "Data",
+        "in": "em",
+        "date_init": "Data Inicial",
+        "date_end": "Data Fim",
+        "debit_date": "Data de D\u00e9bito",
+        "search": "Pesquisar",
+        "months": [
+            "Jan",
+            "Fev",
+            "Mar",
+            "Abr",
+            "Mai",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Set",
+            "Out",
+            "Nov",
+            "Dez"
+        ],
+        "create": "Criar",
+        "import": "Importar",
         "money_type": "R$",
-        "months": {
-            "0": "Janeiro",
-            "1": "Fevereiro",
-            "2": "Março",
-            "3": "Abril",
-            "4": "Maio",
-            "5": "Junho",
-            "6": "Julho",
-            "7": "Agosto",
-            "8": "Setembro",
-            "9": "Outubro",
-            "10": "Novembro",
-            "11": "Dezembro"
-        },
-        "imported": "Importado"
+        "view_mode": "Modo",
+        "repeat": "Repetir",
+        "categories": "Categorias",
+        "filter": "Filtrar",
+        "add_category": "Adicionar categoria nestas transa\u00e7\u00f5es",
+        "submit": "Salvar",
+        "close": "Fechar",
+        "ofx": "OFX",
+        "csv": "CSV"
+    },
+    "config": {
+        "decimal_point": ",",
+        "thousand_point": ".",
+        "date_format": "d\/m\/Y",
+        "date_time_format": "d\/m\/Y H:i:s",
+        "date_time_unformat": "Y-m-d H:i:s"
+    },
+    "home": {
+        "title": "Sistema de finan\u00e7as Dracma",
+        "content": "Sistema de finan\u00e7as..."
+    },
+    "invoices": {
+        "title": "Faturas",
+        "invoice": "fatura",
+        "date_init": "Data de in\u00edcio",
+        "date_end": "Data de fim",
+        "debit_date": "Data de d\u00e9bito",
+        "confirm_destroy": "Confirma\u00e7\u00e3o para remover fatura",
+        "confirmation_text": "Tem certeza que deseja remover a fatura {id}\/{description}?"
+    },
+    "login": {
+        "email": "Email",
+        "password": "Senha",
+        "remember_me": "Lembrar-me",
+        "login": "Entrar",
+        "forgot": "Esqueci minha senha",
+        "name": "Nome",
+        "password_confirmation": "Confirmar senha",
+        "register": "Registrar",
+        "reset_password": "Recuperar senha",
+        "send_email_reset": "Enviar email",
+        "logout": "Sair",
+        "social": "Entrar com uma rede social"
+    },
+    "pagination": {
+        "previous": "&laquo; Anterior",
+        "next": "Pr\u00f3ximo &raquo;"
+    },
+    "passwords": {
+        "password": "Senhas devem conter pelo menos seis caracteres e condizer com a senha de confirma\u00e7\u00e3o.",
+        "reset": "Sua senha foi alterada!",
+        "sent": "Te enviamos um link para recuperar sua senha!",
+        "token": "O token para recuperar a senha \u00e9 inv\u00e1lido, solicite uma nova recupera\u00e7\u00e3o.",
+        "user": "N\u00e3o conseguimos localizar um usu\u00e1rio com este e-mail."
+    },
+    "transactions": {
+        "title": "Transa\u00e7\u00f5es",
+        "value": "Valor",
+        "paid": "Pago",
+        "confirm_destroy": "Confirma\u00e7\u00e3o para remover transa\u00e7\u00e3o",
+        "confirmation_text": "Tem certeza que deseja remover a transa\u00e7\u00e3o {id}\/{description} da conta {acc_id}\/{acc_description}?",
+        "invoice": "Fatura",
+        "repeat_text": "Quantas vezes voc\u00ea quer repetir a transa\u00e7\u00e3o {id}\/{description} da conta {acc_id}\/{acc_description}?",
+        "times": "vezes.",
+        "transaction": "Transa\u00e7\u00e3o"
+    },
+    "translations": {
+        "title": "Tradu\u00e7\u00f5es"
+    },
+    "users": {
+        "title": "Usu\u00e1rios"
     }
 }

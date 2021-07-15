@@ -283,7 +283,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     </>
                                 }
                                 {
-                                    account.is_credit_card === '1' &&
+                                    Boolean(account.is_credit_card) &&
                                     <Button variant="secondary" onClick={() => showInvoices(account)}>
                                         <FontAwesomeIcon icon={faList} />
                                     </Button>
