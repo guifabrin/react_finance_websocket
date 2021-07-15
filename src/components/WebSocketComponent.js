@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
 import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faSync, faList, faPen, faTrash, faPlus, faSave } from '@fortawesome/free-solid-svg-icons'
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
@@ -31,7 +31,8 @@ const MessageEnum = Object.freeze({
     INVOICES: 7,
     CONFIG: 8,
     TRANSACTION: 9,
-    NOTIFICATION: 10
+    NOTIFICATION: 10,
+    ACCOUNT: 11
 })
 const TransactionTypeEnum = Object.freeze({
     COMMON: 0,
@@ -85,6 +86,11 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [showModalInvoices, setShowModalInvoices] = useState(false);
     const handleCloseModalInvoices = () => setShowModalInvoices(false);
     const handleModalInvoices = () => setShowModalInvoices(true);
+
+    const [showModalAccount, setShowModalAccount] = useState(false);
+    const handleCloseModalAccount = () => setShowModalAccount(false);
+    const handleModalAccount = () => setShowModalAccount(true);
+    const [formAccount, setFormAccount] = useState({})
 
     const {
         sendJsonMessage,
@@ -170,7 +176,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <th class="text-center">
                     {t('common.actions')}
                     <div className="actions-buttons">
-                        <Button variant="primary" onClick={() => { }}>
+                        <Button type="button" variant="primary" onClick={() => { }}>
                             <FontAwesomeIcon icon={faPlus} />
                         </Button>
                     </div>
@@ -294,7 +300,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         for (const invoice of account.invoices[month]) {
                             values.push(
                                 <div key={`subtotal_${account.id}_${invoice.id}_${month}`}>
-                                    <Button variant="link" onClick={() => showTransactionsInvoice(account, invoice)}>
+                                    <Button type="button" variant="link" onClick={() => showTransactionsInvoice(account, invoice)}>
                                         <NumberFormat t={t} value={invoice.total} />
                                         <small className='hide-compact'>
                                             <small>
@@ -313,10 +319,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     } else {
                         values.push(
                             <div key={`subtotal_${account.id}_${month}`} className="actions-buttons">
-                                <Button variant="primary" onClick={() => { }}>
+                                <Button type="button" variant="primary" onClick={() => { }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
-                                <Button variant="link" onClick={() => showTransactions(account, actualYear, month)}>
+                                <Button type="button" variant="link" onClick={() => showTransactions(account, actualYear, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
                                     <small className='hide-compact'>
                                         <NumberFormat t={t} value={account.values_not_paid[month]} />
@@ -337,20 +343,20 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
                                 <div className="actions-buttons">
-                                    <Button variant="danger" onClick={() => { }}>
+                                    <Button type="button" variant="danger" onClick={() => { }}>
                                         <FontAwesomeIcon icon={faTrash} />
                                     </Button>
-                                    <Button variant="warning" onClick={() => { }}>
-                                        <FontAwesomeIcon icon={faPen} />
+                                    <Button type="button" variant="warning" onClick={() => { }}>
+                                        <FontAwesomeIcon icon={faPen} onClick={() => openModalAccount(account)} />
                                     </Button>
                                     {
                                         account.automated_ref &&
                                         <>
                                             <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
-                                            <Button variant="primary" onClick={() => syncAccount(account.id)}>
+                                            <Button type="button" variant="primary" onClick={() => syncAccount(account.id)}>
                                                 <FontAwesomeIcon icon={faSync} />
                                             </Button>
-                                            <Button variant="primary" onClick={() => { }}>
+                                            <Button type="button" variant="primary" onClick={() => { }}>
                                                 <FontAwesomeIcon icon={faPlus} />
                                             </Button>
                                         </>
@@ -358,10 +364,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     {
                                         Boolean(account.is_credit_card) &&
                                         <>
-                                            <Button variant="secondary" onClick={() => showInvoices(account)}>
+                                            <Button type="button" variant="secondary" onClick={() => showInvoices(account)}>
                                                 <FontAwesomeIcon icon={faList} />
                                             </Button>
-                                            <Button variant="secondary" onClick={() => { }}>
+                                            <Button type="button" variant="secondary" onClick={() => { }}>
                                                 <FontAwesomeIcon icon={faPlus} />
                                             </Button>
                                         </>
@@ -459,10 +465,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 tdList.push(
                     <td>
                         <div className="actions-buttons">
-                            <Button variant="warning" onClick={() => { }} disabled={transaction.automated_id}>
+                            <Button type="button" variant="warning" onClick={() => { }} disabled={transaction.automated_id}>
                                 <FontAwesomeIcon icon={faPen} />
                             </Button>
-                            <Button variant="danger" onClick={() => { }}>
+                            <Button type="button" variant="danger" onClick={() => { }}>
                                 <FontAwesomeIcon icon={faTrash} />
                             </Button>
                         </div>
@@ -497,10 +503,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         </td>
                         <td>
                             <div className="actions-buttons">
-                                <Button variant="primary" onClick={() => { }}>
+                                <Button type="button" variant="primary" onClick={() => { }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
-                                <Button variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
+                                <Button type="button" variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
                                     <FontAwesomeIcon icon={faList} />
                                 </Button>
                             </div>
@@ -524,11 +530,58 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     }, [])
     setReadyState(readyState)
 
+    function openModalAccount(account) {
+        setFormAccount(account)
+        handleModalAccount()
+    }
+    function updateFormAccount(property, value) {
+        const clone = Object.assign({}, formAccount);
+        clone[property] = value
+        setFormAccount(clone)
+    }
+    function saveFormAccount() {
+        sendJsonMessage({
+            code: MessageEnum.ACCOUNT,
+            value: formAccount
+        });
+        handleCloseModalAccount()
+        changeActualYear(actualYear)
+    }
     return (
         <div>
             <h2>
                 {t('accounts.title')}
             </h2>
+            <Modal show={showModalAccount} onHide={handleCloseModalAccount} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        {formAccount.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group>
+                            <Form.Label>{t('common.id')}</Form.Label>
+                            <Form.Control type="number" value={formAccount.id} disabled />
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>{t('common.description')}</Form.Label>
+                            <Form.Control type="text" value={formAccount.description} onChange={(event) => updateFormAccount('description', event.target.value)} />
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Check type="checkbox" label={t('common.ignore')} checked={Boolean(formAccount.ignore)} onChange={(event) => updateFormAccount('ignore', event.target.checked)} />
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Check type="checkbox" label={t('accounts.is_credit_card')} checked={Boolean(formAccount.is_credit_card)} onChange={(event) => updateFormAccount('is_credit_card', event.target.checked)} />
+                        </Form.Group>
+                        <Button type="button" variant="primary" onClick={() => {
+                            saveFormAccount(formAccount)
+                        }}>
+                            <FontAwesomeIcon icon={faSave} />
+                        </Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
             <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>
@@ -560,7 +613,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 <th>
                                     {t('common.actions')}
                                     <div className="actions-buttons">
-                                        <Button variant="secondary" onClick={() => { }}>
+                                        <Button type="button" variant="secondary" onClick={() => { }}>
                                             <FontAwesomeIcon icon={faPlus} />
                                         </Button>
                                     </div>
@@ -581,7 +634,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         <th>
                             {t(`common.description`)}
                             <div className="actions-buttons">
-                                <Button variant="primary" onClick={() => { }}>
+                                <Button type="button" variant="primary" onClick={() => { openModalAccount({}) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
                             </div>
