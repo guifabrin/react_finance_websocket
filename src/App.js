@@ -16,6 +16,34 @@ let fnCaptchaSender = () => { }
 let fnConfigSender = () => { }
 let lastReadyState = null
 
+const themes = [
+  "cerulean",
+  "cosmo",
+  "cyborg",
+  "darkly",
+  "flatly",
+  "journal",
+  "litera",
+  "lumen",
+  "lux",
+  "materia",
+  "minty",
+  "morph",
+  "pulse",
+  "quartz",
+  "sandstone",
+  "simplex",
+  "sketchy",
+  "slate",
+  "solar",
+  "spacelab",
+  "superhero",
+  "united",
+  "vapor",
+  "yeti",
+  "zephyr",
+]
+
 function App({ t }) {
 
   const [notificationsTransactions, setNotificationsTransactions] = useState('')
@@ -26,6 +54,7 @@ function App({ t }) {
   const [user, setUserMain] = useState({})
   const [compactMode, setCompactMode] = useState(1)
   const [fontSize, setFontSize] = useState(1)
+  const [theme, setTheme] = useState('united')
 
 
   function getConfig(id, defaultt, main_user = user) {
@@ -41,6 +70,7 @@ function App({ t }) {
     setUserMain(main_user)
     setCompactMode(getConfig(4, 0, main_user))
     setFontSize(getConfig(3, 1, main_user))
+    setTheme(getConfig(2, 'united', main_user))
   }
 
   function confirmCaptcha(id) {
@@ -121,8 +151,21 @@ function App({ t }) {
     fnConfigSender(3, newFontSize)
     setFontSize(newFontSize)
   }
+  function toogleTheme(value) {
+    fnConfigSender(2, value)
+    setTheme(value)
+  }
+  const lThemes = []
+  for (const themee of themes) {
+    lThemes.push(
+      <NavDropdown.Item key={`theme_${themee}`} onClick={() => toogleTheme(themee)}>
+        {themee}
+      </NavDropdown.Item>
+    )
+  }
   return (
     <div className="App">
+      <link rel="stylesheet" href={`https://cdn.jsdelivr.net/npm/bootswatch@5.0.1/dist/${theme}/bootstrap.min.css`}></link>
       <style>{`\
         html{\
           font-size: ${fontSize * 12}px !important;\
@@ -150,6 +193,9 @@ function App({ t }) {
               <Nav.Link href="#compact" onClick={() => toogleFontSize(1.1)}>
                 {fontSize > 1 ? <Badge pill className="bg-success">A+</Badge > : <Badge pill className="bg-secondary">A+</Badge >}
               </Nav.Link>
+              <NavDropdown alignRight title={theme} id="themes">
+                {lThemes}
+              </NavDropdown>
               <Nav.Link href="#state">{stateConnection}</Nav.Link>
               <div className="notifications">
                 <small className="count">{notificationCount}</small>
