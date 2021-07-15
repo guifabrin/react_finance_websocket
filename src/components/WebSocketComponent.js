@@ -87,10 +87,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         readyState,
     } = useWebSocket(socketUrl, {
         onOpen: () => {
-            sendJsonMessage({
-                code: MessageEnum.YEAR,
-                year: new Date().getFullYear()
-            });
+            changeActualYear(new Date().getFullYear())
             setCaptchaConfirmation((id, value) => {
                 sendJsonMessage({
                     code: MessageEnum.CAPTCHA,
@@ -110,6 +107,22 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             code: MessageEnum.YEAR,
             year
         });
+        const tThead = []
+        for (let month = 0; month < 12; month++) {
+            tThead.push(
+                <th key={`thead_${month}`}>
+                    {t(`common.months.${month}`)} ({t('common.money_type')})
+                </th>
+            )
+        }
+        setTableThead(tThead)
+        setTableAccounts(
+            <tr>
+                <td colspan={13}>
+                    <ReactLoading color="#000" type={'spin'} />
+                </td>
+            </tr>
+        )
     }
 
     function syncAccount(id) {
@@ -225,16 +238,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             setUser(user)
         },
         [MessageEnum.ACCOUNTS]: ({ accounts }) => {
-            const tThead = []
             const tAccounts = []
-            for (let month = 0; month < 12; month++) {
-                tThead.push(
-                    <th key={`thead_${month}`}>
-                        {t(`common.months.${month}`)} ({t('common.money_type')})
-                    </th>
-                )
-            }
-            setTableThead(tThead)
             for (const account of accounts) {
                 const totals = []
                 for (let month = 0; month < 12; month++) {
