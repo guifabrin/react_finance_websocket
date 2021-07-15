@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
 import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSync, faList } from '@fortawesome/free-solid-svg-icons'
+import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
@@ -39,7 +39,7 @@ const TransactionTypeEnum = Object.freeze({
 })
 const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
-
+const now = new Date();
 function getListYear(fromDate) {
     const years = [];
     const nowYear = new Date().getFullYear();
@@ -129,7 +129,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         const tThead = []
         for (let month = 0; month < 12; month++) {
             tThead.push(
-                <th key={`thead_${month}`}>
+                <th key={`thead_${month}`} className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                     {t(`common.months.${month}`)} ({t('common.money_type')})
                 </th>
             )
@@ -167,7 +167,14 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <th>{t('common.date')}</th>
                 <th>{t('common.description')}</th>
                 <th class="text-center">{t('transactions.value')}</th>
-                <th class="text-center">{t('common.actions')}</th>
+                <th class="text-center">
+                    {t('common.actions')}
+                    <div className="actions-buttons">
+                        <Button variant="primary" onClick={() => { }}>
+                            <FontAwesomeIcon icon={faPlus} />
+                        </Button>
+                    </div>
+                </th>
             </tr>
         )
         setModalTableTransactionsBody(
@@ -305,7 +312,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         }
                     } else {
                         values.push(
-                            <div key={`subtotal_${account.id}_${month}`}>
+                            <div key={`subtotal_${account.id}_${month}`} className="actions-buttons">
+                                <Button variant="primary" onClick={() => { }}>
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </Button>
                                 <Button variant="link" onClick={() => showTransactions(account, actualYear, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
                                     <small className='hide-compact'>
@@ -319,7 +329,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         if (!account.ignore)
                             sumTotalsNotPaid[month] += account.values_not_paid[month]
                     }
-                    totals.push(<td key={`total_${account.id}_${month}`}>{values}</td>)
+                    totals.push(<td className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''} key={`total_${account.id}_${month}`}>{values}</td>)
                 }
                 tAccounts.push(
                     <tr key={`account_${account.id}`} className={account.ignore ? 'ignored hide-compact' : ''}>
@@ -327,6 +337,12 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
                                 <div className="actions-buttons">
+                                    <Button variant="danger" onClick={() => { }}>
+                                        <FontAwesomeIcon icon={faTrash} />
+                                    </Button>
+                                    <Button variant="warning" onClick={() => { }}>
+                                        <FontAwesomeIcon icon={faPen} />
+                                    </Button>
                                     {
                                         account.automated_ref &&
                                         <>
@@ -334,13 +350,21 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                             <Button variant="primary" onClick={() => syncAccount(account.id)}>
                                                 <FontAwesomeIcon icon={faSync} />
                                             </Button>
+                                            <Button variant="primary" onClick={() => { }}>
+                                                <FontAwesomeIcon icon={faPlus} />
+                                            </Button>
                                         </>
                                     }
                                     {
                                         Boolean(account.is_credit_card) &&
-                                        <Button variant="secondary" onClick={() => showInvoices(account)}>
-                                            <FontAwesomeIcon icon={faList} />
-                                        </Button>
+                                        <>
+                                            <Button variant="secondary" onClick={() => showInvoices(account)}>
+                                                <FontAwesomeIcon icon={faList} />
+                                            </Button>
+                                            <Button variant="secondary" onClick={() => { }}>
+                                                <FontAwesomeIcon icon={faPlus} />
+                                            </Button>
+                                        </>
                                     }
                                 </div>
                             </div>
@@ -367,17 +391,17 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             ]
             for (let month = 0; month < 12; month++) {
                 tdListPaid.push(
-                    <th>
+                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotals[month]} />
                     </th>
                 )
                 tdListNotPaid.push(
-                    <th>
+                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotalsNotPaid[month]} />
                     </th>
                 )
                 tdListSumPaid.push(
-                    <th>
+                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotals[month] + sumTotalsNotPaid[month]} />
                     </th>
                 )
@@ -432,7 +456,18 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         </td>
                     )
                 }
-                tdList.push(<td></td>)
+                tdList.push(
+                    <td>
+                        <div className="actions-buttons">
+                            <Button variant="warning" onClick={() => { }} disabled={transaction.automated_id}>
+                                <FontAwesomeIcon icon={faPen} />
+                            </Button>
+                            <Button variant="danger" onClick={() => { }}>
+                                <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                        </div>
+                    </td>
+                )
                 trList.push(<tr>{tdList}</tr>)
             }
             setModalTableTransactionsBody(
@@ -461,9 +496,14 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                             </small>
                         </td>
                         <td>
-                            <Button variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
-                                <FontAwesomeIcon icon={faList} />
-                            </Button>
+                            <div className="actions-buttons">
+                                <Button variant="primary" onClick={() => { }}>
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </Button>
+                                <Button variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
+                                    <FontAwesomeIcon icon={faList} />
+                                </Button>
+                            </div>
                         </td>
                     </tr>
                 )
@@ -486,9 +526,14 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
 
     return (
         <div>
+            <h2>
+                {t('accounts.title')}
+            </h2>
             <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
                 <Modal.Header closeButton>
-                    <Modal.Title>{modalTransactionsTitle}</Modal.Title>
+                    <Modal.Title>
+                        {modalTransactionsTitle}
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Table striped bordered hover>
@@ -512,7 +557,14 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 <th>{t('common.description')}</th>
                                 <th>{t('invoices.debit_date')}</th>
                                 <th>{t('transactions.value')}</th>
-                                <th>{t('common.actions')}</th>
+                                <th>
+                                    {t('common.actions')}
+                                    <div className="actions-buttons">
+                                        <Button variant="secondary" onClick={() => { }}>
+                                            <FontAwesomeIcon icon={faPlus} />
+                                        </Button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         {modalTableInvoicesBody}
@@ -535,6 +587,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 </tbody>
                 {tableFooter}
             </Table>
-        </div>
+        </div >
     );
 };
