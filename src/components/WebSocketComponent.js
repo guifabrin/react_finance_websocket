@@ -4,7 +4,20 @@ import NumberFormat from 'react-number-format';
 import { Table, Nav, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSync } from '@fortawesome/free-solid-svg-icons'
-
+import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
+import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
+import imgBancoInter from '../assets/images/sync_banco_inter.png'
+import imgBancoItua from '../assets/images/sync_banco_itau.png'
+import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
+import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
+const imgRef = {
+    'sync_banco_caixa': imgBancoCaixa,
+    'sync_banco_do_brasil': imgBancoDoBrasil,
+    'sync_banco_inter': imgBancoInter,
+    'sync_banco_itau': imgBancoItua,
+    'sync_banco_nuconta': imgBancoNuconta,
+    'sync_sodexo_alimentacao': imgSodexoAlimentacao,
+}
 const MessageEnum = Object.freeze({
     USER: 0,
     ACCOUNTS: 1,
@@ -130,13 +143,16 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 tAccounts.push(
                     <tr key={`account_${account.id}`}>
                         <th>
-                            {account.id}/{account.description}
-                            <div>
+                            <div style={{ position: 'relative', overflow: 'hidden' }}>
+                                {account.id}/{account.description}
                                 {
-                                    account.automated &&
-                                    <Button variant="primary" onClick={() => syncAccount(account.id)}>
-                                        <FontAwesomeIcon icon={faSync} />
-                                    </Button>
+                                    account.automated_ref &&
+                                    <>
+                                        <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
+                                        <Button variant="primary" onClick={() => syncAccount(account.id)}>
+                                            <FontAwesomeIcon icon={faSync} />
+                                        </Button>
+                                    </>
                                 }
                             </div>
                         </th>

@@ -59,3 +59,13 @@
 small{
   display: block;
 }
+
+.accountImage {
+  max-width: 100%;
+  max-height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.5;
+  z-index: -1;
+}
