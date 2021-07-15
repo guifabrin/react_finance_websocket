@@ -6,7 +6,7 @@ import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
-import imgBancoItua from '../assets/images/sync_banco_itau.png'
+import imgBancoItau from '../assets/images/sync_banco_itau.png'
 import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
 import { NumberFormat } from './NumberFormat';
@@ -16,7 +16,7 @@ const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
     'sync_banco_do_brasil': imgBancoDoBrasil,
     'sync_banco_inter': imgBancoInter,
-    'sync_banco_itau': imgBancoItua,
+    'sync_banco_itau': imgBancoItau,
     'sync_banco_nuconta': imgBancoNuconta,
     'sync_sodexo_alimentacao': imgSodexoAlimentacao,
 }
@@ -578,7 +578,14 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>{t(`common.description`)}</th>
+                        <th>
+                            {t(`common.description`)}
+                            <div className="actions-buttons">
+                                <Button variant="primary" onClick={() => { }}>
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </Button>
+                            </div>
+                        </th>
                         {tableThead}
                     </tr>
                 </thead>
