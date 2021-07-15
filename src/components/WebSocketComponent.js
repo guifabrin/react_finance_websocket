@@ -10,6 +10,7 @@ import imgBancoItua from '../assets/images/sync_banco_itau.png'
 import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
 import { NumberFormat } from './NumberFormat';
+import ReactLoading from 'react-loading';
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
     'sync_banco_do_brasil': imgBancoDoBrasil,
@@ -129,7 +130,15 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <th class="text-center">{t('common.actions')}</th>
             </tr>
         )
-        setModalTableTransactionsBody('')
+        setModalTableTransactionsBody(
+            <tbody>
+                <tr>
+                    <td colspan={4}>
+                        <ReactLoading color="#000" type={'cylon'} />
+                    </td>
+                </tr>
+            </tbody>
+        )
         setModalTableTransactionsFooter(
             <tfoot>
                 <tr>
@@ -172,7 +181,15 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <th class="text-center">{t('common.actions')}</th>
             </tr>
         )
-        setModalTableTransactionsBody('')
+        setModalTableTransactionsBody(
+            <tbody>
+                <tr>
+                    <td colspan={5}>
+                        <ReactLoading color="#000" type={'cylon'} />
+                    </td>
+                </tr>
+            </tbody>
+        )
         setModalTableTransactionsFooter('')
         handleShow()
     }
@@ -274,7 +291,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     <td>{transaction.description}</td>,
                     <td><NumberFormat t={t} value={transaction.value} /></td>
                 ]
-                if (modalTransactionsType == 0) {
+                if (modalTransactionsType === 0) {
                     tdList.push(<td><input type="checkbox" /></td>)
                 }
                 tdList.push(<td></td>)
