@@ -36,3 +36,26 @@
     transform: rotate(360deg);
   }
 }
+
+.notifications{
+  position: relative;
+}
+
+.notifications small.count {
+  position: absolute;
+  background: red;
+  border-radius: 10px;
+  color: white;
+  bottom: 0;
+  font-size: 9px;
+  padding: 3px;
+  right: 0;
+}
+
+.notifications .dropdown-toggle::after{
+  display: none;
+}
+
+small{
+  display: block;
+}

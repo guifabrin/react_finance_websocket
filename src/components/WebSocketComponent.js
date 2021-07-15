@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
+import useWebSocket from 'react-use-websocket';
 import NumberFormat from 'react-number-format';
-import { Table, Nav } from 'react-bootstrap';
+import { Table, Nav, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSync } from '@fortawesome/free-solid-svg-icons'
 
 const MessageEnum = Object.freeze({
+    USER: 0,
     ACCOUNTS: 1,
-    YEAR: 2
+    YEAR: 2,
+    NOTIFICATIONS: 3,
+    AUTOMATED: 4,
+    CAPTCHA: 5
 })
 const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
@@ -29,13 +35,14 @@ function getListYear(fromDate) {
     return years;
 }
 
-export const WebSocketComponent = ({ t }) => {
+export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setUser, setReadyState }) => {
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
     const [listYears, setListYears] = useState('')
     const [actualYear, setActualYear] = useState('')
     const messageHistory = useRef([]);
+
 
     const {
         sendJsonMessage,
@@ -47,13 +54,17 @@ export const WebSocketComponent = ({ t }) => {
                 code: MessageEnum.YEAR,
                 year: new Date().getFullYear()
             });
+            setCaptchaConfirmation((id, value) => {
+                sendJsonMessage({
+                    code: MessageEnum.CAPTCHA,
+                    value,
+                    id
+                });
+            })
         },
         onMessage: (message) => {
             const json = JSON.parse(message.data)
             RECEIVERS[json.code](json)
-        },
-        onClose: () => {
-            setSocketUrl(SOCKET_URL + PATH)
         }
     });
 
@@ -64,7 +75,18 @@ export const WebSocketComponent = ({ t }) => {
         });
     }
 
+    function syncAccount(id) {
+        sendJsonMessage({
+            code: MessageEnum.AUTOMATED,
+            id: id,
+            body: ''
+        });
+    }
+
     const RECEIVERS = Object.freeze({
+        [MessageEnum.USER]: ({ user }) => {
+            setUser(user)
+        },
         [MessageEnum.ACCOUNTS]: ({ accounts }) => {
             const tThead = []
             const tAccounts = []
@@ -110,9 +132,12 @@ export const WebSocketComponent = ({ t }) => {
                         <th>
                             {account.id}/{account.description}
                             <div>
-                                <button>
-                                    Act
-                                </button>
+                                {
+                                    account.automated &&
+                                    <Button variant="primary" onClick={() => syncAccount(account.id)}>
+                                        <FontAwesomeIcon icon={faSync} />
+                                    </Button>
+                                }
                             </div>
                         </th>
                         {totals}
@@ -133,23 +158,23 @@ export const WebSocketComponent = ({ t }) => {
                 )
             }
             setListYears(lYears)
+        },
+        [MessageEnum.NOTIFICATIONS]: (data) => {
+            setNotifications(data)
+        },
+        [MessageEnum.AUTOMATED]: (data) => {
+            console.log(data)
         }
     })
 
     messageHistory.current = useMemo(() =>
         messageHistory.current.concat(lastMessage), [lastMessage]);
 
-    const connectionStatus = {
-        [ReadyState.CONNECTING]: 'Connecting',
-        [ReadyState.OPEN]: 'Open',
-        [ReadyState.CLOSING]: 'Closing',
-        [ReadyState.CLOSED]: 'Closed',
-        [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
-    }[readyState];
-
     useEffect(() => {
         setSocketUrl(SOCKET_URL + PATH)
     }, [])
+    setReadyState(readyState)
+
     return (
         <div>
             <Nav variant="tabs" activeKey={actualYear}>
@@ -166,7 +191,6 @@ export const WebSocketComponent = ({ t }) => {
                     {tableAccounts}
                 </tbody>
             </Table>
-            <span>The WebSocket is currently {connectionStatus}</span>
         </div>
     );
 };
