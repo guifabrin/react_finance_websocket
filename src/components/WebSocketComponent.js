@@ -27,7 +27,8 @@ const MessageEnum = Object.freeze({
     AUTOMATED: 4,
     CAPTCHA: 5,
     TRANSACTIONS: 6,
-    INVOICES: 7
+    INVOICES: 7,
+    CONFIG: 8
 })
 const TransactionTypeEnum = Object.freeze({
     COMMON: 0,
@@ -55,7 +56,7 @@ function getListYear(fromDate) {
     return years;
 }
 
-export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setUser, setReadyState }) => {
+export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setConfigSender, setUser, setReadyState }) => {
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
@@ -96,6 +97,13 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     id
                 });
             })
+            setConfigSender((id, value) => {
+                sendJsonMessage({
+                    code: MessageEnum.CONFIG,
+                    value,
+                    id
+                });
+            })
         },
         onMessage: (message) => {
             const json = JSON.parse(message.data)
@@ -120,7 +128,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setTableFooter('')
         setTableAccounts(
             <tr>
-                <td colspan={13}>
+                <td colSpan={13}>
                     <ReactLoading color="#000" type={'spin'} />
                 </td>
             </tr>
@@ -155,7 +163,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setModalTableTransactionsBody(
             <tbody>
                 <tr>
-                    <td colspan={4}>
+                    <td colSpan={4}>
                         <ReactLoading color="#000" type={'spin'} />
                     </td>
                 </tr>
@@ -164,7 +172,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setModalTableTransactionsFooter(
             <tfoot>
                 <tr>
-                    <td colspan="3">
+                    <td colSpan="3">
                         {t('accounts.totals_not_paid')}
                     </td>
                     <td>
@@ -172,7 +180,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="3">
+                    <td colSpan="3">
                         {t('accounts.totals_paid')}
                     </td>
                     <td>
@@ -206,7 +214,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setModalTableTransactionsBody(
             <tbody>
                 <tr>
-                    <td colspan={5}>
+                    <td colSpan={5}>
                         <ReactLoading color="#000" type={'spin'} />
                     </td>
                 </tr>
@@ -225,7 +233,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setModalTableInvoicesBody(
             <tbody>
                 <tr>
-                    <td colspan={5}>
+                    <td colSpan={5}>
                         <ReactLoading color="#000" type={'spin'} />
                     </td>
                 </tr>
@@ -259,7 +267,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 <div key={`subtotal_${account.id}_${invoice.id}_${month}`}>
                                     <Button variant="link" onClick={() => showTransactionsInvoice(account, invoice)}>
                                         <NumberFormat t={t} value={invoice.total} />
-                                        <small>
+                                        <small className='hide-compact'>
                                             <small>
                                                 <NumberFormat t={t} value={invoice.total_negative} />
                                             </small>
@@ -278,7 +286,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                             <div key={`subtotal_${account.id}_${month}`}>
                                 <Button variant="link" onClick={() => showTransactions(account, actualYear, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
-                                    <small>
+                                    <small className='hide-compact'>
                                         <NumberFormat t={t} value={account.values_not_paid[month]} />
                                     </small>
                                 </Button>
@@ -292,7 +300,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     totals.push(<td key={`total_${account.id}_${month}`}>{values}</td>)
                 }
                 tAccounts.push(
-                    <tr key={`account_${account.id}`} className={account.ignore ? 'ignored' : ''}>
+                    <tr key={`account_${account.id}`} className={account.ignore ? 'ignored hide-compact' : ''}>
                         <th>
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
