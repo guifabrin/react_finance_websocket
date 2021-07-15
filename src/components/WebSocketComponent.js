@@ -59,6 +59,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
+    const [tableFooter, setTableFooter] = useState('')
     const [listYears, setListYears] = useState('')
     const [actualYear, setActualYear] = useState('')
 
@@ -116,6 +117,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             )
         }
         setTableThead(tThead)
+        setTableFooter('')
         setTableAccounts(
             <tr>
                 <td colspan={13}>
@@ -239,9 +241,17 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         },
         [MessageEnum.ACCOUNTS]: ({ accounts }) => {
             const tAccounts = []
+            const sumTotals = []
+            const sumTotalsNotPaid = []
             for (const account of accounts) {
                 const totals = []
                 for (let month = 0; month < 12; month++) {
+                    if (!sumTotals[month]) {
+                        sumTotals[month] = 0
+                    }
+                    if (!sumTotalsNotPaid[month]) {
+                        sumTotalsNotPaid[month] = 0
+                    }
                     let values = []
                     if (account.is_credit_card) {
                         for (const invoice of account.invoices[month]) {
@@ -260,20 +270,29 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     </Button>
                                 </div>
                             )
+                            if (!account.ignore)
+                                sumTotals[month] += invoice.total
                         }
                     } else {
                         values.push(
                             <div key={`subtotal_${account.id}_${month}`}>
                                 <Button variant="link" onClick={() => showTransactions(account, actualYear, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
+                                    <small>
+                                        <NumberFormat t={t} value={account.values_not_paid[month]} />
+                                    </small>
                                 </Button>
                             </div>
                         )
+                        if (!account.ignore)
+                            sumTotals[month] += account.values[month]
+                        if (!account.ignore)
+                            sumTotalsNotPaid[month] += account.values_not_paid[month]
                     }
                     totals.push(<td key={`total_${account.id}_${month}`}>{values}</td>)
                 }
                 tAccounts.push(
-                    <tr key={`account_${account.id}`}>
+                    <tr key={`account_${account.id}`} className={account.ignore ? 'ignored' : ''}>
                         <th>
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
@@ -299,6 +318,51 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 )
             }
             setTableAccounts(tAccounts)
+
+            const tdListPaid = [
+                <th>
+                    {t('accounts.totals_paid')}:
+                </th>
+            ]
+            const tdListNotPaid = [
+                <th>
+                    {t('accounts.totals_not_paid')}:
+                </th>]
+            const tdListSumPaid = [
+                <th>
+                    {t('accounts.totals')}:
+                </th>
+            ]
+            for (let month = 0; month < 12; month++) {
+                tdListPaid.push(
+                    <th>
+                        <NumberFormat t={t} value={sumTotals[month]} />
+                    </th>
+                )
+                tdListNotPaid.push(
+                    <th>
+                        <NumberFormat t={t} value={sumTotalsNotPaid[month]} />
+                    </th>
+                )
+                tdListSumPaid.push(
+                    <th>
+                        <NumberFormat t={t} value={sumTotals[month] + sumTotalsNotPaid[month]} />
+                    </th>
+                )
+            }
+            setTableFooter(
+                <tfoot>
+                    <tr>
+                        {tdListPaid}
+                    </tr>
+                    <tr>
+                        {tdListNotPaid}
+                    </tr>
+                    <tr>
+                        {tdListSumPaid}
+                    </tr>
+                </tfoot>
+            )
         },
         [MessageEnum.YEAR]: ({ year }) => {
             setActualYear(year)
@@ -415,6 +479,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <tbody>
                     {tableAccounts}
                 </tbody>
+                {tableFooter}
             </Table>
         </div>
     );

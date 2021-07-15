@@ -107,3 +107,6 @@ table.table td .btn.btn-link, table.table th .btn.btn-link {
 .positive {
   color: #0e4a0e;
 }
+.ignored{
+  opacity:0.7
+}
