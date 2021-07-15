@@ -69,3 +69,41 @@ small{
   opacity: 0.5;
   z-index: -1;
 }
+
+table.table td {
+  padding: 2px !important;
+  vertical-align: middle;
+  text-align: right;
+}
+table.table td, table.table th {
+  position: relative;
+}
+@media only screen and (max-width: 600px) {
+  table.table td, table.table th {
+    display: none;
+ }
+  table.table td.table-active, table.table th.table-active {
+    display: table-cell;
+ }
+  table.table td.description, table.table th.description {
+    width: 200px;
+ }
+}
+table.table td .btn, table.table th .btn {
+  padding: 5px;
+  margin-left: 3px;
+}
+table.table td .btn.btn-link, table.table th .btn.btn-link {
+  width: auto;
+}
+
+.logo{
+  width: 24px;
+}
+
+.negative {
+  color: #bf0606;
+}
+.positive {
+  color: #0e4a0e;
+}

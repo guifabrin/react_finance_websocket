@@ -7,8 +7,10 @@ import { Container, Row, Col, Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell, faGlobeAmericas } from '@fortawesome/free-solid-svg-icons'
-import NumberFormat from 'react-number-format';
+import { NumberFormat } from './components/NumberFormat';
 import { ReadyState } from 'react-use-websocket';
+
+import logo from './assets/images/icon.png'
 
 let fnCaptchaSender = () => { }
 let lastReadyState = null
@@ -57,7 +59,7 @@ function App({ t }) {
       lNotificationsTransactions.push(
         <NavDropdown.Item key={`notification_transaction_${transaction.id}`}>
           {t('common.imported')} {transaction.description}
-          <small> <NumberFormat value={transaction.value} displayType={'text'} thousandSeparator={true} decimalScale={2} /></small>
+          <small> <NumberFormat t={t} value={transaction.value} /></small>
         </NavDropdown.Item>
       )
     }
@@ -68,7 +70,7 @@ function App({ t }) {
       lNotificationsInvoices.push(
         <NavDropdown.Item key={`notification_invoice_${invoice.id}`}>
           {t('common.imported')}  {invoice.description}
-          <small> <NumberFormat value={invoice.total} displayType={'text'} thousandSeparator={true} decimalScale={2} /></small>
+          <small> <NumberFormat t={t} value={invoice.total} /></small>
         </NavDropdown.Item>
       )
     }
@@ -88,7 +90,9 @@ function App({ t }) {
     <div className="App">
       <Navbar bg="light" expand="lg">
         <Container fluid>
-          <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+          <Navbar.Brand href="#home">
+            <img src={logo} className="logo" alt="" />
+          </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="justify-content-end" style={{ width: "100%" }}>
