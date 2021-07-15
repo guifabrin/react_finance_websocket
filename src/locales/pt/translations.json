@@ -61,6 +61,7 @@
         ],
         "create": "Criar",
         "import": "Importar",
+        "imported": "Imp.",
         "money_type": "R$",
         "view_mode": "Modo",
         "repeat": "Repetir",
@@ -133,5 +134,8 @@
     },
     "users": {
         "title": "Usu\u00e1rios"
+    },
+    "formats": {
+        "date": "DD/MM/YYYY"
     }
 }

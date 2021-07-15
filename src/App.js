@@ -1,5 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css';
+import './App.scss';
 import { WebSocketComponent } from './components/WebSocketComponent';
 import './i18n';
 import { withNamespaces } from 'react-i18next';
@@ -14,6 +13,7 @@ import logo from './assets/images/icon.png'
 
 let fnCaptchaSender = () => { }
 let fnConfigSender = () => { }
+let fnNotificationSender = () => { }
 let lastReadyState = null
 
 const themes = [
@@ -59,7 +59,7 @@ function App({ t }) {
 
   function getConfig(id, defaultt, main_user = user) {
     let value = defaultt;
-    const valueConfig = main_user.configs ? main_user.configs.filter(({ config }) => config.id == id)[0] : null
+    const valueConfig = main_user.configs ? main_user.configs.filter(({ config }) => config.id === id)[0] : null
     if (valueConfig) {
       value = valueConfig.value
     }
@@ -88,6 +88,13 @@ function App({ t }) {
   function setConfigSender(sender) {
     fnConfigSender = sender
   }
+  function setNotificationSender(sender) {
+    fnNotificationSender = sender
+  }
+
+  function setSeen(notification) {
+    fnNotificationSender(notification.id)
+  }
 
   function setReadyState(readyState) {
     if (lastReadyState === readyState) {
@@ -109,9 +116,9 @@ function App({ t }) {
   function setNotifications({ transactions, invoices, captchas }) {
     setNotificationCount(transactions.length + invoices.length + captchas.length)
     const lNotificationsTransactions = []
-    for (const { transaction } of transactions) {
+    for (const { notification, transaction } of transactions) {
       lNotificationsTransactions.push(
-        <NavDropdown.Item key={`notification_transaction_${transaction.id}`}>
+        <NavDropdown.Item key={`notification_transaction_${transaction.id}`} onClick={() => setSeen(notification)}>
           {t('common.imported')} {transaction.description}
           <small> <NumberFormat t={t} value={transaction.value} /></small>
         </NavDropdown.Item>
@@ -120,9 +127,9 @@ function App({ t }) {
     setNotificationsTransactions(lNotificationsTransactions)
 
     const lNotificationsInvoices = []
-    for (const { invoice } of invoices) {
+    for (const { notification, invoice } of invoices) {
       lNotificationsInvoices.push(
-        <NavDropdown.Item key={`notification_invoice_${invoice.id}`}>
+        <NavDropdown.Item key={`notification_invoice_${invoice.id}`} onClick={() => setSeen(notification)}>
           {t('common.imported')}  {invoice.description}
           <small> <NumberFormat t={t} value={invoice.total} /></small>
         </NavDropdown.Item>
@@ -217,7 +224,7 @@ function App({ t }) {
           <Col xs={2} lg={2}>
           </Col>
           <Col xs={10} lg={10}>
-            <WebSocketComponent t={t} setNotifications={setNotifications} setCaptchaConfirmation={setCaptchaConfirmation} setUser={setUser} setReadyState={setReadyState} setConfigSender={setConfigSender} />
+            <WebSocketComponent t={t} setNotifications={setNotifications} setCaptchaConfirmation={setCaptchaConfirmation} setUser={setUser} setReadyState={setReadyState} setConfigSender={setConfigSender} setNotificationSender={setNotificationSender} />
           </Col>
         </Row>
       </Container>

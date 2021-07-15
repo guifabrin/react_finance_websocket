@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
-import { Table, Nav, Button, Modal } from 'react-bootstrap';
+import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSync, faList } from '@fortawesome/free-solid-svg-icons'
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
@@ -11,6 +11,7 @@ import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
 import { NumberFormat } from './NumberFormat';
 import ReactLoading from 'react-loading';
+import { DateFormat } from './DateFormat';
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
     'sync_banco_do_brasil': imgBancoDoBrasil,
@@ -28,7 +29,9 @@ const MessageEnum = Object.freeze({
     CAPTCHA: 5,
     TRANSACTIONS: 6,
     INVOICES: 7,
-    CONFIG: 8
+    CONFIG: 8,
+    TRANSACTION: 9,
+    NOTIFICATION: 10
 })
 const TransactionTypeEnum = Object.freeze({
     COMMON: 0,
@@ -56,7 +59,7 @@ function getListYear(fromDate) {
     return years;
 }
 
-export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setConfigSender, setUser, setReadyState }) => {
+export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setConfigSender, setUser, setReadyState, setNotificationSender }) => {
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
@@ -104,11 +107,18 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     id
                 });
             })
+            setNotificationSender((id) => {
+                sendJsonMessage({
+                    code: MessageEnum.NOTIFICATION,
+                    id
+                });
+            })
         },
         onMessage: (message) => {
             const json = JSON.parse(message.data)
             RECEIVERS[json.code](json)
-        }
+        },
+        shouldReconnect: (closeEvent) => true,
     });
 
     function changeActualYear(year) {
@@ -129,7 +139,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setTableAccounts(
             <tr>
                 <td colSpan={13}>
-                    <ReactLoading color="#000" type={'spin'} />
+                    <ReactLoading className="loading" color="#000" type={'spin'} />
                 </td>
             </tr>
         )
@@ -150,7 +160,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             accountId: account.id,
             invoiceId: invoice.id
         });
-        setModalTransactionsTitle(`${account.id}/${account.description} - ${invoice.id}/${invoice.description} - ${invoice.debit_date}`)
+        setModalTransactionsTitle([`${account.id}/${account.description} - ${invoice.id}/${invoice.description} - `, <DateFormat value={invoice.debit_date} t={t} />])
         setModalTransactionsType(1)
         setModalTableTransactionsHeader(
             <tr>
@@ -164,7 +174,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <tbody>
                 <tr>
                     <td colSpan={4}>
-                        <ReactLoading color="#000" type={'spin'} />
+                        <ReactLoading className="loading" color="#000" type={'spin'} />
                     </td>
                 </tr>
             </tbody>
@@ -198,9 +208,9 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             type: TransactionTypeEnum.COMMON,
             accountId: account.id,
             year,
-            month
+            month: month + 1
         });
-        setModalTransactionsTitle(`${account.id}/${account.description} - ${month}/${year}`)
+        setModalTransactionsTitle(`${account.id}/${account.description} - ${month + 1}/${year}`)
         setModalTransactionsType(0)
         setModalTableTransactionsHeader(
             <tr>
@@ -215,7 +225,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <tbody>
                 <tr>
                     <td colSpan={5}>
-                        <ReactLoading color="#000" type={'spin'} />
+                        <ReactLoading className="loading" color="#000" type={'spin'} />
                     </td>
                 </tr>
             </tbody>
@@ -234,13 +244,25 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <tbody>
                 <tr>
                     <td colSpan={5}>
-                        <ReactLoading color="#000" type={'spin'} />
+                        <ReactLoading className="loading" color="#000" type={'spin'} />
                     </td>
                 </tr>
             </tbody>
         )
         setModalTableInvoicesFooter('')
         handleModalInvoices()
+    }
+
+    function setPaid(transaction, paid) {
+        transaction.paid = paid
+        sendJsonMessage({
+            code: MessageEnum.TRANSACTION,
+            id: transaction.id,
+            accountId: transaction.account_id,
+            values: {
+                paid
+            }
+        });
     }
 
     const RECEIVERS = Object.freeze({
@@ -395,17 +417,27 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             const trList = []
             for (const transaction of transactions) {
                 const tdList = [
-                    <td>{transaction.date}</td>,
+                    <td><DateFormat value={transaction.date} t={t} /></td>,
                     <td>{transaction.description}</td>,
                     <td><NumberFormat t={t} value={transaction.value} /></td>
                 ]
                 if (modalTransactionsType === 0) {
-                    tdList.push(<td><input type="checkbox" /></td>)
+                    tdList.push(
+                        <td>
+                            <Form.Group>
+                                <Form.Check type="checkbox" checked={Boolean(transaction.paid)} onChange={() => setPaid(transaction, !Boolean(transaction.paid))} />
+                            </Form.Group>
+                        </td>
+                    )
                 }
                 tdList.push(<td></td>)
                 trList.push(<tr>{tdList}</tr>)
             }
-            setModalTableTransactionsBody(trList)
+            setModalTableTransactionsBody(
+                <tbody>
+                    {trList}
+                </tbody>
+            )
         },
         [MessageEnum.INVOICES]: ({ invoices }) => {
             const trList = []
@@ -414,9 +446,17 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     <tr>
                         <td>{invoice.id}</td>
                         <td>{invoice.description}</td>
-                        <td>{invoice.debit_date}</td>
+                        <td><DateFormat value={invoice.debit_date} t={t} /></td>
                         <td>
                             <NumberFormat t={t} value={invoice.total} />
+                            <small className='hide-compact'>
+                                <small>
+                                    <NumberFormat t={t} value={invoice.total_negative} />
+                                </small>
+                                <small>
+                                    <NumberFormat t={t} value={invoice.total_positive} />
+                                </small>
+                            </small>
                         </td>
                         <td>
                             <Button variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
@@ -426,7 +466,11 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     </tr>
                 )
             }
-            setModalTableInvoicesBody(trList)
+            setModalTableInvoicesBody(
+                <tbody>
+                    {trList}
+                </tbody>
+            )
         }
     })
 
@@ -465,7 +509,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 <th>{t('common.id')}</th>
                                 <th>{t('common.description')}</th>
                                 <th>{t('invoices.debit_date')}</th>
-                                <th>{t('common.value')}</th>
+                                <th>{t('transactions.value')}</th>
                                 <th>{t('common.actions')}</th>
                             </tr>
                         </thead>
