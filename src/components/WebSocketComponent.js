@@ -283,7 +283,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     </>
                                 }
                                 {
-                                    account.is_credit_card &&
+                                    account.is_credit_card === '1' &&
                                     <Button variant="secondary" onClick={() => showInvoices(account)}>
                                         <FontAwesomeIcon icon={faList} />
                                     </Button>
@@ -336,7 +336,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             for (const invoice of invoices) {
                 trList.push(
                     <tr>
-
                         <td>{invoice.id}</td>
                         <td>{invoice.description}</td>
                         <td>{invoice.debit_date}</td>
