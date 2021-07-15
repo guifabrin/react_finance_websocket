@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
 import { Table, Nav, Button, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSync } from '@fortawesome/free-solid-svg-icons'
+import { faSync, faList } from '@fortawesome/free-solid-svg-icons'
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
@@ -26,7 +26,8 @@ const MessageEnum = Object.freeze({
     NOTIFICATIONS: 3,
     AUTOMATED: 4,
     CAPTCHA: 5,
-    TRANSACTIONS: 6
+    TRANSACTIONS: 6,
+    INVOICES: 7
 })
 const TransactionTypeEnum = Object.freeze({
     COMMON: 0,
@@ -61,18 +62,24 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [listYears, setListYears] = useState('')
     const [actualYear, setActualYear] = useState('')
 
+    const messageHistory = useRef([]);
+
     const [modalTransactionsTitle, setModalTransactionsTitle] = useState('')
     const [modalTransactionsType, setModalTransactionsType] = useState(0)
     const [modalTableTransactionsHeader, setModalTableTransactionsHeader] = useState('')
     const [modalTableTransactionsFooter, setModalTableTransactionsFooter] = useState('')
     const [modalTableTransactionsBody, setModalTableTransactionsBody] = useState('')
+    const [showModalTransactions, setShowModalTransactions] = useState(false);
+    const handleCloseModalTransactions = () => setShowModalTransactions(false);
+    const handleModalTransactions = () => setShowModalTransactions(true);
 
-    const messageHistory = useRef([]);
 
-    const [show, setShow] = useState(false);
-
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    const [modalInvoicesTitle, setModalInvoicesTitle] = useState('')
+    const [modalTableInvoicesFooter, setModalTableInvoicesFooter] = useState('')
+    const [modalTableInvoicesBody, setModalTableInvoicesBody] = useState('')
+    const [showModalInvoices, setShowModalInvoices] = useState(false);
+    const handleCloseModalInvoices = () => setShowModalInvoices(false);
+    const handleModalInvoices = () => setShowModalInvoices(true);
 
     const {
         sendJsonMessage,
@@ -113,7 +120,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         });
     }
 
-    function showInvoice(account, invoice) {
+    function showTransactionsInvoice(account, invoice) {
         sendJsonMessage({
             code: MessageEnum.TRANSACTIONS,
             type: TransactionTypeEnum.INVOICE,
@@ -134,7 +141,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <tbody>
                 <tr>
                     <td colspan={4}>
-                        <ReactLoading color="#000" type={'cylon'} />
+                        <ReactLoading color="#000" type={'spin'} />
                     </td>
                 </tr>
             </tbody>
@@ -159,7 +166,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 </tr>
             </tfoot>
         )
-        handleShow()
+        handleModalTransactions()
     }
 
     function showTransactions(account, year, month) {
@@ -185,13 +192,32 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <tbody>
                 <tr>
                     <td colspan={5}>
-                        <ReactLoading color="#000" type={'cylon'} />
+                        <ReactLoading color="#000" type={'spin'} />
                     </td>
                 </tr>
             </tbody>
         )
         setModalTableTransactionsFooter('')
-        handleShow()
+        handleModalTransactions()
+    }
+
+    function showInvoices(account) {
+        sendJsonMessage({
+            code: MessageEnum.INVOICES,
+            accountId: account.id
+        });
+        setModalInvoicesTitle(`${account.id}/${account.description}`)
+        setModalTableInvoicesBody(
+            <tbody>
+                <tr>
+                    <td colspan={5}>
+                        <ReactLoading color="#000" type={'spin'} />
+                    </td>
+                </tr>
+            </tbody>
+        )
+        setModalTableInvoicesFooter('')
+        handleModalInvoices()
     }
 
     const RECEIVERS = Object.freeze({
@@ -217,7 +243,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         for (const invoice of account.invoices[month]) {
                             values.push(
                                 <div key={`subtotal_${account.id}_${invoice.id}_${month}`}>
-                                    <Button variant="link" onClick={() => showInvoice(account, invoice)}>
+                                    <Button variant="link" onClick={() => showTransactionsInvoice(account, invoice)}>
                                         <NumberFormat t={t} value={invoice.total} />
                                         <small>
                                             <small>
@@ -255,6 +281,12 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                             <FontAwesomeIcon icon={faSync} />
                                         </Button>
                                     </>
+                                }
+                                {
+                                    account.is_credit_card &&
+                                    <Button variant="secondary" onClick={() => showInvoices(account)}>
+                                        <FontAwesomeIcon icon={faList} />
+                                    </Button>
                                 }
                             </div>
                         </th>
@@ -298,6 +330,28 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 trList.push(<tr>{tdList}</tr>)
             }
             setModalTableTransactionsBody(trList)
+        },
+        [MessageEnum.INVOICES]: ({ invoices }) => {
+            const trList = []
+            for (const invoice of invoices) {
+                trList.push(
+                    <tr>
+
+                        <td>{invoice.id}</td>
+                        <td>{invoice.description}</td>
+                        <td>{invoice.debit_date}</td>
+                        <td>
+                            <NumberFormat t={t} value={invoice.total} />
+                        </td>
+                        <td>
+                            <Button variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
+                                <FontAwesomeIcon icon={faList} />
+                            </Button>
+                        </td>
+                    </tr>
+                )
+            }
+            setModalTableInvoicesBody(trList)
         }
     })
 
@@ -311,7 +365,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
 
     return (
         <div>
-            <Modal show={show} onHide={handleClose} size="lg">
+            <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>{modalTransactionsTitle}</Modal.Title>
                 </Modal.Header>
@@ -322,6 +376,26 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         </thead>
                         {modalTableTransactionsBody}
                         {modalTableTransactionsFooter}
+                    </Table>
+                </Modal.Body>
+            </Modal>
+            <Modal show={showModalInvoices} onHide={handleCloseModalInvoices} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>{modalInvoicesTitle}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Table striped bordered hover>
+                        <thead>
+                            <tr class="active">
+                                <th>{t('common.id')}</th>
+                                <th>{t('common.description')}</th>
+                                <th>{t('invoices.debit_date')}</th>
+                                <th>{t('common.value')}</th>
+                                <th>{t('common.actions')}</th>
+                            </tr>
+                        </thead>
+                        {modalTableInvoicesBody}
+                        {modalTableInvoicesFooter}
                     </Table>
                 </Modal.Body>
             </Modal>
