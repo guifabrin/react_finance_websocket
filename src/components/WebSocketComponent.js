@@ -326,21 +326,23 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         <th>
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
-                                {
-                                    account.automated_ref &&
-                                    <>
-                                        <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
-                                        <Button variant="primary" onClick={() => syncAccount(account.id)}>
-                                            <FontAwesomeIcon icon={faSync} />
+                                <div className="actions-buttons">
+                                    {
+                                        account.automated_ref &&
+                                        <>
+                                            <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
+                                            <Button variant="primary" onClick={() => syncAccount(account.id)}>
+                                                <FontAwesomeIcon icon={faSync} />
+                                            </Button>
+                                        </>
+                                    }
+                                    {
+                                        Boolean(account.is_credit_card) &&
+                                        <Button variant="secondary" onClick={() => showInvoices(account)}>
+                                            <FontAwesomeIcon icon={faList} />
                                         </Button>
-                                    </>
-                                }
-                                {
-                                    Boolean(account.is_credit_card) &&
-                                    <Button variant="secondary" onClick={() => showInvoices(account)}>
-                                        <FontAwesomeIcon icon={faList} />
-                                    </Button>
-                                }
+                                    }
+                                </div>
                             </div>
                         </th>
                         {totals}

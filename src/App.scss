@@ -140,3 +140,8 @@ table.table {
 .loading {
   margin: 100px auto;
 }
+
+.actions-buttons,
+.actions-buttons > * {
+  float: right;
+}
