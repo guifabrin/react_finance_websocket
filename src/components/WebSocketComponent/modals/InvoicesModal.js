@@ -3,14 +3,14 @@
 import { Button, Modal, Table } from 'react-bootstrap';
 import { faPlus, faList } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import CrudStatusEnum from '../../enums/CrudStatusEnum';
-import MessageReceiverEnum from '../../enums/MessageReceiverEnum';
 import React from 'react';
-import { NumberFormat } from '../../formatters/NumberFormat';
-import { DateFormat } from '../../formatters/DateFormat';
 import ReactLoading from 'react-loading';
 import TransactionModal from './TransactionModal';
 import TransactionsModal from './TransactionsModal';
+import MessageReceiverEnum from '../../../enums/MessageReceiverEnum';
+import CrudStatusEnum from '../../../enums/CrudStatusEnum';
+import { NumberFormat } from '../../../formatters/NumberFormat';
+import { DateFormat } from '../../../formatters/DateFormat';
 
 let t = null
 let instance = null

@@ -4,7 +4,7 @@ import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NumberFormat } from '../formatters/NumberFormat';
 import { Table, Nav, Button } from 'react-bootstrap';
-import AccountModal from "./modals/AccountModal";
+import AccountModal from "./WebSocketComponent/modals/AccountModal";
 import CrudStatusEnum from "../enums/CrudStatusEnum";
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
@@ -16,9 +16,9 @@ import MessageReceiverEnum from "../enums/MessageReceiverEnum";
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactLoading from 'react-loading';
 import useWebSocket from 'react-use-websocket';
-import TransactionModal from "./modals/TransactionModal";
-import TransactionsModal from "./modals/TransactionsModal";
-import InvoicesModal from "./modals/InvoicesModal";
+import TransactionModal from "./WebSocketComponent/modals/TransactionModal";
+import TransactionsModal from "./WebSocketComponent/modals/TransactionsModal";
+import InvoicesModal from "./WebSocketComponent/modals/InvoicesModal";
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
