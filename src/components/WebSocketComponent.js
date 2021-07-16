@@ -42,7 +42,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
     const [tableFooter, setTableFooter] = useState('')
-    const [actualYear, setActualYear] = useState('')
 
     const messageHistory = useRef([]);
 
@@ -151,7 +150,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id }) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
-                                <Button type="button" variant="link" onClick={() => showTransactions(account, actualYear, month)}>
+                                <Button type="button" variant="link" onClick={() => showTransactions(account, YearTab.year, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
                                     <small className='hide-compact'>
                                         <NumberFormat t={t} value={account.values_not_paid[month]} />
@@ -164,7 +163,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         if (!account.ignore)
                             sumTotalsNotPaid[month] += account.values_not_paid[month]
                     }
-                    totals.push(<td className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''} key={`total_${account.id}_${month}`}>{values}</td>)
+                    totals.push(<td className={YearTab.year === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''} key={`total_${account.id}_${month}`}>{values}</td>)
                 }
                 tAccounts.push(
                     <tr key={`account_${account.id}`} className={account.ignore ? 'ignored hide-compact' : ''}>
@@ -230,17 +229,17 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             ]
             for (let month = 0; month < 12; month++) {
                 tdListPaid.push(
-                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
+                    <th className={YearTab.year === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotals[month]} />
                     </th>
                 )
                 tdListNotPaid.push(
-                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
+                    <th className={YearTab.year === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotalsNotPaid[month]} />
                     </th>
                 )
                 tdListSumPaid.push(
-                    <th className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
+                    <th className={YearTab.year === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
                         <NumberFormat t={t} value={sumTotals[month] + sumTotalsNotPaid[month]} />
                     </th>
                 )
@@ -260,7 +259,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             )
         },
         [MessageReceiverEnum.YEAR]: ({ year }) => {
-            setActualYear(year)
             YearTab.update(year)
             const tThead = []
             for (let month = 0; month < 12; month++) {

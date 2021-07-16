@@ -85,5 +85,8 @@ export default {
     },
     reload: () => {
         instance.reload()
+    },
+    get year() {
+        return instance.state.year
     }
 }
