@@ -4,8 +4,8 @@ import { faSync, faList, faPen, faTrash, faPlus, faSave } from '@fortawesome/fre
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NumberFormat } from './NumberFormat';
 import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
+import AccountModal from "../modals/AccountModal";
 import CrudStatusEnum from "../enums/CrudStatusEnum";
-import DatePicker from "react-datepicker";
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
@@ -13,12 +13,11 @@ import imgBancoItau from '../assets/images/sync_banco_itau.png'
 import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
 import MessageReceiverEnum from "../enums/MessageReceiverEnum";
-import NumberFormatOriginal from 'react-number-format';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactLoading from 'react-loading';
 import TransactionTypeEnum from "../enums/TransactionTypeEnum";
 import useWebSocket from 'react-use-websocket';
-import AccountModal from "../modals/AccountModal";
+import TransactionModal from "../modals/TransactionModal";
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
@@ -80,13 +79,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [showModalInvoices, setShowModalInvoices] = useState(false);
     const handleCloseModalInvoices = () => setShowModalInvoices(false);
     const handleModalInvoices = () => setShowModalInvoices(true);
-
-
-    const [showModalTransaction, setShowModalTransaction] = useState(false);
-    const [formTransaction, setFormTransaction] = useState({})
-    const [formTransactionInvoices, setFormTransactionInvoices] = useState([])
-    const handleCloseModalTransaction = () => setShowModalTransaction(false);
-    const handleModalTransaction = () => setShowModalTransaction(true);
 
     const {
         sendJsonMessage,
@@ -551,33 +543,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         if (!transaction.value) {
             transaction.value = 0
         }
-        setFormTransaction(transaction)
-        const lList = [
-            <option>Selecionar fatura</option>
-        ]
-        for (const invoice of invoices)
-            lList.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
-        setFormTransactionInvoices(lList)
-        handleModalTransaction()
-    }
-
-    function updateFormTransaction(property, value) {
-        const clone = Object.assign({}, formTransaction);
-        clone[property] = value
-        setFormTransaction(clone)
-    }
-
-    function saveFormTransaction() {
-        const clone = Object.assign({}, formTransaction);
-        clone.date = `${clone.date.getFullYear()}-${((clone.date.getMonth() + 1) + '').padStart(2, '0')}-${(clone.date.getDate() + '').padStart(2, '0')}`
-        sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTION,
-            id: clone.id,
-            status: CrudStatusEnum.ADD_EDIT,
-            accountId: clone.account_id,
-            values: clone
-        });
-        handleCloseModalTransaction()
+        TransactionModal.open(transaction, invoices)
     }
 
     function deleteAccount(account) {
@@ -604,52 +570,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 {t('accounts.title')}
             </h2>
             <AccountModal.Elem t={t} accounts={mainAccounts} sendJsonMessage={sendJsonMessage} />
-            <Modal show={showModalTransaction} onHide={handleCloseModalTransaction} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        {formTransaction.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group>
-                            <Form.Label>{t('common.id')}</Form.Label>
-                            <Form.Control type="number" value={formTransaction.id} disabled />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>{t('common.description')}</Form.Label>
-                            <Form.Control type="text" value={formTransaction.description} onChange={(event) => updateFormTransaction('description', event.target.value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>{t('common.date')}</Form.Label>
-                            <DatePicker className='form-control' type="text" selected={formTransaction.date ? new Date(formTransaction.date) : new Date()} onChange={(value) => updateFormTransaction('date', value)} />
-                        </Form.Group>
-                        {
-                            formTransactionInvoices.length > 0 &&
-                            <>
-                                <Form.Label>{t('transactions.invoice')}</Form.Label>
-                                <Form.Group>
-                                    <select value={formTransaction.invoice_id} onChange={(event) => { updateFormTransaction('invoice_id', event.target.value) }} className="form-control">
-                                        {formTransactionInvoices}
-                                    </select>
-                                </Form.Group>
-                            </>
-                        }
-                        <Form.Group>
-                            <Form.Check type="checkbox" label={t('transactions.paid')} checked={Boolean(formTransaction.paid)} onChange={(event) => updateFormTransaction('paid', event.target.checked)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <NumberFormatOriginal className="form-control" value={formTransaction.value} onChange={(event) => { updateFormTransaction('value', parseFloat(event.target.value)) }} />
-                        </Form.Group>
-                        <Button type="button" variant="primary" onClick={() => {
-                            saveFormTransaction(formTransaction)
-                        }}>
-                            <FontAwesomeIcon icon={faSave} />
-                        </Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
-
+            <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>

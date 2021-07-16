@@ -2,7 +2,9 @@ import { Button, Modal, Form } from 'react-bootstrap';
 import { faSave } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import CrudStatusEnum from '../enums/CrudStatusEnum';
+import DatePicker from "react-datepicker";
 import MessageReceiverEnum from '../enums/MessageReceiverEnum';
+import NumberFormatOriginal from 'react-number-format';
 import React from 'react';
 
 let t = null
@@ -15,8 +17,8 @@ class Elem extends React.Component {
         t = this.props.t
         this.sendJsonMessage = sendJsonMessage
         this.state = {
-            account: {},
-            options: [],
+            transaction: {},
+            options: [<option>Selecionar conta</option>],
             show: false
         };
         instance = this
@@ -27,74 +29,73 @@ class Elem extends React.Component {
         this.forceUpdate()
     }
 
-    open(account, accounts) {
-        this.state.account = account
+    open(transaction, invoices) {
+        this.state.transaction = transaction
         this.state.show = true
         this.state.options = [<option>Selecionar conta</option>]
-        for (const maccount of accounts)
-            if (account.id !== maccount.id && !maccount.is_credit_card)
-                this.state.options.push(<option key={`account_option_${maccount.id}`} value={maccount.id}>{maccount.id}/{maccount.description}</option>)
+        for (const invoice of invoices)
+            this.state.options.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
         this.forceUpdate()
     }
 
     save() {
+        const clone = Object.assign({}, this.state.transaction);
+        clone.date = `${clone.date.getFullYear()}-${((clone.date.getMonth() + 1) + '').padStart(2, '0')}-${(clone.date.getDate() + '').padStart(2, '0')}`
         this.sendJsonMessage({
-            code: MessageReceiverEnum.ACCOUNT,
+            code: MessageReceiverEnum.TRANSACTION,
+            id: clone.id,
             status: CrudStatusEnum.ADD_EDIT,
-            value: this.state.account
+            accountId: clone.account_id,
+            values: clone
         });
         this.hide()
     }
 
     update(property, value) {
-        const clone = Object.assign({}, this.state.account);
+        const clone = Object.assign({}, this.state.transaction);
         clone[property] = value
-        this.state.account = clone
+        this.state.transaction = clone
     }
 
     render() {
-        const account = this.state.account
+        const transaction = this.state.transaction
         return (
             <Modal show={this.state.show} onHide={() => this.hide()} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {account.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
+                        {transaction.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group>
                             <Form.Label>{t('common.id')}</Form.Label>
-                            <Form.Control type="number" value={account.id} disabled />
+                            <Form.Control type="number" value={transaction.id} disabled />
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>{t('common.description')}</Form.Label>
-                            <Form.Control type="text" value={account.description} onChange={(event) => this.update('description', event.target.value)} />
+                            <Form.Control type="text" value={transaction.description} onChange={(event) => this.update('description', event.target.value)} />
                         </Form.Group>
                         <Form.Group>
-                            <Form.Check type="checkbox" label={t('common.ignore')} checked={Boolean(account.ignore)} onChange={(event) => this.update('ignore', event.target.checked)} />
+                            <Form.Label>{t('common.date')}</Form.Label>
+                            <DatePicker className='form-control' type="text" selected={transaction.date ? new Date(transaction.date) : new Date()} onChange={(value) => this.update('date', value)} />
                         </Form.Group>
-                        <Form.Group>
-                            <Form.Check type="checkbox" label={t('accounts.is_credit_card')} checked={Boolean(account.is_credit_card)} onChange={(event) => this.update('is_credit_card', event.target.checked)} />
-                        </Form.Group>
-
                         {
                             this.state.options.length > 0 &&
                             <>
-                                <Form.Label>{t('accounts.prefer_debit_account_id')}</Form.Label>
+                                <Form.Label>{t('transactions.invoice')}</Form.Label>
                                 <Form.Group>
-                                    <select value={account.prefer_debit_account_id} onChange={(event) => { this.update('prefer_debit_account_id', event.target.value) }} className="form-control">
+                                    <select value={transaction.invoice_id} onChange={(event) => { this.update('invoice_id', event.target.value) }} className="form-control">
                                         {this.state.options}
                                     </select>
                                 </Form.Group>
                             </>
                         }
                         <Form.Group>
-                            <Form.Label>{t('accounts.automated_args')}</Form.Label>
-                            <Form.Control type="text" value={account.automated_args} onChange={(event) => this.update('automated_args', event.target.value)} />
+                            <Form.Check type="checkbox" label={t('transactions.paid')} checked={Boolean(transaction.paid)} onChange={(event) => this.update('paid', event.target.checked)} />
                         </Form.Group>
                         <Form.Group>
-                            <Form.Check type="checkbox" label={t('accounts.automated_body')} checked={Boolean(account.automated_body)} onChange={(event) => this.update('automated_body', event.target.checked)} />
+                            <NumberFormatOriginal className="form-control" value={transaction.value} onChange={(event) => { this.update('value', parseFloat(event.target.value)) }} />
                         </Form.Group>
                         <Button type="button" variant="primary" onClick={() => this.save()}>
                             <FontAwesomeIcon icon={faSave} />
@@ -107,7 +108,7 @@ class Elem extends React.Component {
 }
 export default {
     Elem,
-    open: (account, accounts) => {
-        instance.open(account, accounts)
+    open: (transaction, invoices) => {
+        instance.open(transaction, invoices)
     }
 }
