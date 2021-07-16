@@ -6,7 +6,7 @@ import { Container, Row, Col, Navbar, Nav, NavDropdown, Badge } from 'react-boot
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell, faGlobeAmericas, faCompactDisc } from '@fortawesome/free-solid-svg-icons'
-import { NumberFormat } from './components/NumberFormat';
+import { NumberFormat } from './formatters/NumberFormat';
 import { ReadyState } from 'react-use-websocket';
 
 import logo from './assets/images/icon.png'
