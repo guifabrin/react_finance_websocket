@@ -1,19 +1,15 @@
 import './App.scss';
-import { WebSocketComponent } from './components/WebSocketComponent';
 import './i18n';
-import { withNamespaces } from 'react-i18next';
 import { Container, Row, Col, Navbar, Nav, NavDropdown, Badge } from 'react-bootstrap';
-import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell, faGlobeAmericas, faCompactDisc } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NumberFormat } from './formatters/NumberFormat';
 import { ReadyState } from 'react-use-websocket';
-
+import { useState } from 'react';
+import { withNamespaces } from 'react-i18next';
 import logo from './assets/images/icon.png'
+import WebSocketComponent from './components/WebSocketComponent';
 
-let fnCaptchaSender = () => { }
-let fnConfigSender = () => { }
-let fnNotificationSender = () => { }
 let lastReadyState = null
 
 const themes = [
@@ -56,6 +52,88 @@ function App({ t }) {
   const [fontSize, setFontSize] = useState(1)
   const [theme, setTheme] = useState('united')
 
+  function confirmCaptcha(id) {
+    const value = prompt('Who is this captcha?')
+    if (value) {
+      WebSocketComponent.setCaptcha(id, value)
+    }
+  }
+  function setSeen(notification) {
+    WebSocketComponent.setSeen(notification.id)
+  }
+  function toogleCompactMode() {
+    const newCompactMode = compactMode ? 0 : 1
+    WebSocketComponent.setConfig(4, newCompactMode)
+    setCompactMode(newCompactMode)
+  }
+  function toogleFontSize(value) {
+    const newFontSize = fontSize * value
+    WebSocketComponent.setConfig(3, newFontSize)
+    setFontSize(newFontSize)
+  }
+  function toogleTheme(value) {
+    WebSocketComponent.setConfig(2, value)
+    setTheme(value)
+  }
+
+  const setters = {
+    user: (main_user) => {
+      setUserMain(main_user)
+      setCompactMode(getConfig(4, 0, main_user))
+      setFontSize(getConfig(3, 1, main_user))
+      setTheme(getConfig(2, 'united', main_user))
+    },
+    readyState: (readyState) => {
+      if (lastReadyState === readyState) {
+        return
+      }
+      lastReadyState = readyState
+      switch (readyState) {
+        case ReadyState.CONNECTING:
+          setStateConnection(<font className="text-warning"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
+          break;
+        case ReadyState.OPEN:
+          setStateConnection(<font className="text-success"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
+          break;
+        default:
+          setStateConnection(<font className="text-danger"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
+          break;
+      }
+    },
+    notifications: ({ transactions, invoices, captchas }) => {
+      setNotificationCount(transactions.length + invoices.length + captchas.length)
+      const lNotificationsTransactions = []
+      for (const { notification, transaction } of transactions) {
+        lNotificationsTransactions.push(
+          <NavDropdown.Item key={`notification_transaction_${transaction.id}`} onClick={() => setSeen(notification)}>
+            {t('common.imported')} {transaction.description}
+            <small> <NumberFormat t={t} value={transaction.value} /></small>
+          </NavDropdown.Item>
+        )
+      }
+      setNotificationsTransactions(lNotificationsTransactions)
+
+      const lNotificationsInvoices = []
+      for (const { notification, invoice } of invoices) {
+        lNotificationsInvoices.push(
+          <NavDropdown.Item key={`notification_invoice_${invoice.id}`} onClick={() => setSeen(notification)}>
+            {t('common.imported')}  {invoice.description}
+            <small> <NumberFormat t={t} value={invoice.total} /></small>
+          </NavDropdown.Item>
+        )
+      }
+      setNotificationsInvoices(lNotificationsInvoices)
+      const lNotificationsCaptchas = []
+      for (const captcha of captchas) {
+        lNotificationsCaptchas.push(
+          <NavDropdown.Item className="captcha" key={`notification_captcha_${captcha.id}`} >
+            <img src={captcha.base64_url} alt={captcha.id} onClick={() => { confirmCaptcha(captcha.id) }} />
+          </NavDropdown.Item>
+        )
+      }
+      setNotificationsCaptcha(lNotificationsCaptchas)
+    }
+  }
 
   function getConfig(id, defaultt, main_user = user) {
     let value = defaultt;
@@ -66,102 +144,6 @@ function App({ t }) {
     return value
   }
 
-  function setUser(main_user) {
-    setUserMain(main_user)
-    setCompactMode(getConfig(4, 0, main_user))
-    setFontSize(getConfig(3, 1, main_user))
-    setTheme(getConfig(2, 'united', main_user))
-  }
-
-  function confirmCaptcha(id) {
-    const value = prompt('Who is this captcha?')
-    if (value) {
-      fnCaptchaSender(id, value)
-    }
-  }
-
-  function setCaptchaConfirmation(sender) {
-    fnCaptchaSender = sender
-  }
-
-
-  function setConfigSender(sender) {
-    fnConfigSender = sender
-  }
-  function setNotificationSender(sender) {
-    fnNotificationSender = sender
-  }
-
-  function setSeen(notification) {
-    fnNotificationSender(notification.id)
-  }
-
-  function setReadyState(readyState) {
-    if (lastReadyState === readyState) {
-      return
-    }
-    lastReadyState = readyState
-    switch (readyState) {
-      case ReadyState.CONNECTING:
-        setStateConnection(<font className="text-warning"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
-        break;
-      case ReadyState.OPEN:
-        setStateConnection(<font className="text-success"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
-        break;
-      default:
-        setStateConnection(<font className="text-danger"><FontAwesomeIcon icon={faGlobeAmericas} /></font>)
-        break;
-    }
-  }
-  function setNotifications({ transactions, invoices, captchas }) {
-    setNotificationCount(transactions.length + invoices.length + captchas.length)
-    const lNotificationsTransactions = []
-    for (const { notification, transaction } of transactions) {
-      lNotificationsTransactions.push(
-        <NavDropdown.Item key={`notification_transaction_${transaction.id}`} onClick={() => setSeen(notification)}>
-          {t('common.imported')} {transaction.description}
-          <small> <NumberFormat t={t} value={transaction.value} /></small>
-        </NavDropdown.Item>
-      )
-    }
-    setNotificationsTransactions(lNotificationsTransactions)
-
-    const lNotificationsInvoices = []
-    for (const { notification, invoice } of invoices) {
-      lNotificationsInvoices.push(
-        <NavDropdown.Item key={`notification_invoice_${invoice.id}`} onClick={() => setSeen(notification)}>
-          {t('common.imported')}  {invoice.description}
-          <small> <NumberFormat t={t} value={invoice.total} /></small>
-        </NavDropdown.Item>
-      )
-    }
-    setNotificationsInvoices(lNotificationsInvoices)
-
-    const lNotificationsCaptchas = []
-    for (const captcha of captchas) {
-      lNotificationsCaptchas.push(
-        <NavDropdown.Item className="captcha" key={`notification_captcha_${captcha.id}`} >
-          <img src={captcha.base64_url} alt={captcha.id} onClick={() => { confirmCaptcha(captcha.id) }} />
-        </NavDropdown.Item>
-      )
-    }
-    setNotificationsCaptcha(lNotificationsCaptchas)
-  }
-
-  function toogleCompactMode() {
-    const newCompactMode = compactMode ? 0 : 1
-    fnConfigSender(4, newCompactMode)
-    setCompactMode(newCompactMode)
-  }
-  function toogleFontSize(value) {
-    const newFontSize = fontSize * value
-    fnConfigSender(3, newFontSize)
-    setFontSize(newFontSize)
-  }
-  function toogleTheme(value) {
-    fnConfigSender(2, value)
-    setTheme(value)
-  }
   const lThemes = []
   for (const themee of themes) {
     lThemes.push(
@@ -224,7 +206,7 @@ function App({ t }) {
           <Col xs={2} lg={2}>
           </Col>
           <Col xs={10} lg={10}>
-            <WebSocketComponent t={t} setNotifications={setNotifications} setCaptchaConfirmation={setCaptchaConfirmation} setUser={setUser} setReadyState={setReadyState} setConfigSender={setConfigSender} setNotificationSender={setNotificationSender} />
+            <WebSocketComponent.Elem t={t} setters={setters} />
           </Col>
         </Row>
       </Container>

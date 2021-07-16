@@ -6,6 +6,7 @@ import React from 'react';
 import MessageReceiverEnum from '../../enums/MessageReceiverEnum';
 
 let instance = null
+const now = new Date();
 
 function getListYear(fromDate) {
     const years = [];
@@ -88,5 +89,8 @@ export default {
     },
     get year() {
         return instance.state.year
+    },
+    isNow(month) {
+        return instance.state.year === now.getFullYear() && month === now.getMonth()
     }
 }
