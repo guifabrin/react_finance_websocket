@@ -1,17 +1,25 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import useWebSocket from 'react-use-websocket';
-import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import "react-datepicker/dist/react-datepicker.css";
+import { DateFormat } from './DateFormat';
 import { faSync, faList, faPen, faTrash, faPlus, faSave } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { NumberFormat } from './NumberFormat';
+import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
+import CrudStatusEnum from "../enums/CrudStatusEnum";
+import DatePicker from "react-datepicker";
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
 import imgBancoDoBrasil from '../assets/images/sync_banco_do_brasil.png'
 import imgBancoInter from '../assets/images/sync_banco_inter.png'
 import imgBancoItau from '../assets/images/sync_banco_itau.png'
 import imgBancoNuconta from '../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
-import { NumberFormat } from './NumberFormat';
+import MessageReceiverEnum from "../enums/MessageReceiverEnum";
+import NumberFormatOriginal from 'react-number-format';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactLoading from 'react-loading';
-import { DateFormat } from './DateFormat';
+import TransactionTypeEnum from "../enums/TransactionTypeEnum";
+import useWebSocket from 'react-use-websocket';
+import AccountModal from "../modals/AccountModal";
+
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
     'sync_banco_do_brasil': imgBancoDoBrasil,
@@ -20,27 +28,11 @@ const imgRef = {
     'sync_banco_nuconta': imgBancoNuconta,
     'sync_sodexo_alimentacao': imgSodexoAlimentacao,
 }
-const MessageEnum = Object.freeze({
-    USER: 0,
-    ACCOUNTS: 1,
-    YEAR: 2,
-    NOTIFICATIONS: 3,
-    AUTOMATED: 4,
-    CAPTCHA: 5,
-    TRANSACTIONS: 6,
-    INVOICES: 7,
-    CONFIG: 8,
-    TRANSACTION: 9,
-    NOTIFICATION: 10,
-    ACCOUNT: 11
-})
-const TransactionTypeEnum = Object.freeze({
-    COMMON: 0,
-    INVOICE: 1
-})
+
 const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
 const now = new Date();
+
 function getListYear(fromDate) {
     const years = [];
     const nowYear = new Date().getFullYear();
@@ -59,6 +51,8 @@ function getListYear(fromDate) {
     }
     return years;
 }
+
+let mainAccounts = []
 
 export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setConfigSender, setUser, setReadyState, setNotificationSender }) => {
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
@@ -87,10 +81,12 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const handleCloseModalInvoices = () => setShowModalInvoices(false);
     const handleModalInvoices = () => setShowModalInvoices(true);
 
-    const [showModalAccount, setShowModalAccount] = useState(false);
-    const handleCloseModalAccount = () => setShowModalAccount(false);
-    const handleModalAccount = () => setShowModalAccount(true);
-    const [formAccount, setFormAccount] = useState({})
+
+    const [showModalTransaction, setShowModalTransaction] = useState(false);
+    const [formTransaction, setFormTransaction] = useState({})
+    const [formTransactionInvoices, setFormTransactionInvoices] = useState([])
+    const handleCloseModalTransaction = () => setShowModalTransaction(false);
+    const handleModalTransaction = () => setShowModalTransaction(true);
 
     const {
         sendJsonMessage,
@@ -101,21 +97,21 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             changeActualYear(new Date().getFullYear())
             setCaptchaConfirmation((id, value) => {
                 sendJsonMessage({
-                    code: MessageEnum.CAPTCHA,
+                    code: MessageReceiverEnum.CAPTCHA,
                     value,
                     id
                 });
             })
             setConfigSender((id, value) => {
                 sendJsonMessage({
-                    code: MessageEnum.CONFIG,
+                    code: MessageReceiverEnum.CONFIG,
                     value,
                     id
                 });
             })
             setNotificationSender((id) => {
                 sendJsonMessage({
-                    code: MessageEnum.NOTIFICATION,
+                    code: MessageReceiverEnum.NOTIFICATION,
                     id
                 });
             })
@@ -129,7 +125,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
 
     function changeActualYear(year) {
         sendJsonMessage({
-            code: MessageEnum.YEAR,
+            code: MessageReceiverEnum.YEAR,
             year
         });
         const tThead = []
@@ -151,17 +147,21 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         )
     }
 
-    function syncAccount(id) {
+    function syncAccount(account) {
+        let body = ''
+        if (account.automated_body) {
+            body = prompt('isafe?')
+        }
         sendJsonMessage({
-            code: MessageEnum.AUTOMATED,
-            id: id,
-            body: ''
+            code: MessageReceiverEnum.AUTOMATED,
+            id: account.id,
+            body
         });
     }
 
     function showTransactionsInvoice(account, invoice) {
         sendJsonMessage({
-            code: MessageEnum.TRANSACTIONS,
+            code: MessageReceiverEnum.TRANSACTIONS,
             type: TransactionTypeEnum.INVOICE,
             accountId: account.id,
             invoiceId: invoice.id
@@ -176,7 +176,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 <th class="text-center">
                     {t('common.actions')}
                     <div className="actions-buttons">
-                        <Button type="button" variant="primary" onClick={() => { }}>
+                        <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id, invoice_id: invoice.id }, account.sinvoices) }}>
                             <FontAwesomeIcon icon={faPlus} />
                         </Button>
                     </div>
@@ -217,7 +217,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
 
     function showTransactions(account, year, month) {
         sendJsonMessage({
-            code: MessageEnum.TRANSACTIONS,
+            code: MessageReceiverEnum.TRANSACTIONS,
             type: TransactionTypeEnum.COMMON,
             accountId: account.id,
             year,
@@ -249,7 +249,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
 
     function showInvoices(account) {
         sendJsonMessage({
-            code: MessageEnum.INVOICES,
+            code: MessageReceiverEnum.INVOICES,
             accountId: account.id
         });
         setModalInvoicesTitle(`${account.id}/${account.description}`)
@@ -269,7 +269,8 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     function setPaid(transaction, paid) {
         transaction.paid = paid
         sendJsonMessage({
-            code: MessageEnum.TRANSACTION,
+            code: MessageReceiverEnum.TRANSACTION,
+            status: CrudStatusEnum.ADD_EDIT,
             id: transaction.id,
             accountId: transaction.account_id,
             values: {
@@ -279,10 +280,11 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     }
 
     const RECEIVERS = Object.freeze({
-        [MessageEnum.USER]: ({ user }) => {
+        [MessageReceiverEnum.USER]: ({ user }) => {
             setUser(user)
         },
-        [MessageEnum.ACCOUNTS]: ({ accounts }) => {
+        [MessageReceiverEnum.ACCOUNTS]: ({ accounts }) => {
+            mainAccounts = accounts
             const tAccounts = []
             const sumTotals = []
             const sumTotalsNotPaid = []
@@ -319,7 +321,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     } else {
                         values.push(
                             <div key={`subtotal_${account.id}_${month}`} className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { }}>
+                                <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id }) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
                                 <Button type="button" variant="link" onClick={() => showTransactions(account, actualYear, month)}>
@@ -343,21 +345,18 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                             <div style={{ position: 'relative', overflow: 'hidden' }}>
                                 {account.id}/{account.description}
                                 <div className="actions-buttons">
-                                    <Button type="button" variant="danger" onClick={() => { }}>
+                                    <Button type="button" variant="danger" onClick={() => { deleteAccount(account) }}>
                                         <FontAwesomeIcon icon={faTrash} />
                                     </Button>
                                     <Button type="button" variant="warning" onClick={() => { }}>
-                                        <FontAwesomeIcon icon={faPen} onClick={() => openModalAccount(account)} />
+                                        <FontAwesomeIcon icon={faPen} onClick={() => AccountModal.open(account, mainAccounts)} />
                                     </Button>
                                     {
                                         account.automated_ref &&
                                         <>
                                             <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
-                                            <Button type="button" variant="primary" onClick={() => syncAccount(account.id)}>
+                                            <Button type="button" variant="primary" onClick={() => syncAccount(account)}>
                                                 <FontAwesomeIcon icon={faSync} />
-                                            </Button>
-                                            <Button type="button" variant="primary" onClick={() => { }}>
-                                                <FontAwesomeIcon icon={faPlus} />
                                             </Button>
                                         </>
                                     }
@@ -371,6 +370,13 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                                 <FontAwesomeIcon icon={faPlus} />
                                             </Button>
                                         </>
+                                    }
+                                    {
+
+                                        !Boolean(account.is_credit_card) &&
+                                        <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id }) }}>
+                                            <FontAwesomeIcon icon={faPlus} />
+                                        </Button>
                                     }
                                 </div>
                             </div>
@@ -426,7 +432,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 </tfoot>
             )
         },
-        [MessageEnum.YEAR]: ({ year }) => {
+        [MessageReceiverEnum.YEAR]: ({ year }) => {
             setActualYear(year)
             const years = getListYear(year)
             const lYears = []
@@ -439,13 +445,13 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             }
             setListYears(lYears)
         },
-        [MessageEnum.NOTIFICATIONS]: (data) => {
+        [MessageReceiverEnum.NOTIFICATIONS]: (data) => {
             setNotifications(data)
         },
-        [MessageEnum.AUTOMATED]: (data) => {
+        [MessageReceiverEnum.AUTOMATED]: (data) => {
             console.log(data)
         },
-        [MessageEnum.TRANSACTIONS]: ({ transactions }) => {
+        [MessageReceiverEnum.TRANSACTIONS]: ({ transactions }) => {
             const trList = []
             for (const transaction of transactions) {
                 const tdList = [
@@ -465,10 +471,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 tdList.push(
                     <td>
                         <div className="actions-buttons">
-                            <Button type="button" variant="warning" onClick={() => { }} disabled={transaction.automated_id}>
-                                <FontAwesomeIcon icon={faPen} />
+                            <Button type="button" variant="warning" onClick={() => { }}>
+                                <FontAwesomeIcon icon={faPen} onClick={() => { openModalTransaction(transaction, transaction.sinvoices) }} />
                             </Button>
-                            <Button type="button" variant="danger" onClick={() => { }}>
+                            <Button type="button" variant="danger" onClick={() => { deleteTransaction(transaction) }}>
                                 <FontAwesomeIcon icon={faTrash} />
                             </Button>
                         </div>
@@ -482,7 +488,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                 </tbody>
             )
         },
-        [MessageEnum.INVOICES]: ({ invoices }) => {
+        [MessageReceiverEnum.INVOICES]: ({ invoices }) => {
             const trList = []
             for (const invoice of invoices) {
                 trList.push(
@@ -503,7 +509,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         </td>
                         <td>
                             <div className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { }}>
+                                <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: invoice.account.id, invoice_id: invoice.id }, invoice.account.sinvoices) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
                                 <Button type="button" variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
@@ -511,7 +517,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                 </Button>
                             </div>
                         </td>
-                    </tr>
+                    </tr >
                 )
             }
             setModalTableInvoicesBody(
@@ -519,69 +525,131 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     {trList}
                 </tbody>
             )
+        },
+        [MessageReceiverEnum.UPDATE]: () => {
+            changeActualYear(actualYear)
         }
     })
 
-    messageHistory.current = useMemo(() =>
-        messageHistory.current.concat(lastMessage), [lastMessage]);
+    messageHistory.current = useMemo(() => {
+        return messageHistory.current.concat(lastMessage)
+    }, [lastMessage]);
 
     useEffect(() => {
         setSocketUrl(SOCKET_URL + PATH)
     }, [])
     setReadyState(readyState)
 
-    function openModalAccount(account) {
-        setFormAccount(account)
-        handleModalAccount()
+    function openModalTransaction(transaction, invoices = []) {
+        if (!transaction.date) {
+            transaction.date = new Date()
+        } else {
+            if (typeof transaction.date == "string") {
+                transaction.date = new Date(transaction.date)
+            }
+        }
+        if (!transaction.value) {
+            transaction.value = 0
+        }
+        setFormTransaction(transaction)
+        const lList = [
+            <option>Selecionar fatura</option>
+        ]
+        for (const invoice of invoices)
+            lList.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
+        setFormTransactionInvoices(lList)
+        handleModalTransaction()
     }
-    function updateFormAccount(property, value) {
-        const clone = Object.assign({}, formAccount);
+
+    function updateFormTransaction(property, value) {
+        const clone = Object.assign({}, formTransaction);
         clone[property] = value
-        setFormAccount(clone)
+        setFormTransaction(clone)
     }
-    function saveFormAccount() {
+
+    function saveFormTransaction() {
+        const clone = Object.assign({}, formTransaction);
+        clone.date = `${clone.date.getFullYear()}-${((clone.date.getMonth() + 1) + '').padStart(2, '0')}-${(clone.date.getDate() + '').padStart(2, '0')}`
         sendJsonMessage({
-            code: MessageEnum.ACCOUNT,
-            value: formAccount
+            code: MessageReceiverEnum.TRANSACTION,
+            id: clone.id,
+            status: CrudStatusEnum.ADD_EDIT,
+            accountId: clone.account_id,
+            values: clone
         });
-        handleCloseModalAccount()
-        changeActualYear(actualYear)
+        handleCloseModalTransaction()
+    }
+
+    function deleteAccount(account) {
+        sendJsonMessage({
+            code: MessageReceiverEnum.ACCOUNT,
+            status: CrudStatusEnum.REMOVE,
+            value: account
+        });
+        handleCloseModalTransactions()
+    }
+
+    function deleteTransaction(transaction) {
+        sendJsonMessage({
+            code: MessageReceiverEnum.TRANSACTION,
+            id: transaction.id,
+            status: CrudStatusEnum.REMOVE,
+            accountId: transaction.account_id,
+        });
+        handleCloseModalTransactions()
     }
     return (
         <div>
             <h2>
                 {t('accounts.title')}
             </h2>
-            <Modal show={showModalAccount} onHide={handleCloseModalAccount} size="lg">
+            <AccountModal.Elem t={t} accounts={mainAccounts} sendJsonMessage={sendJsonMessage} />
+            <Modal show={showModalTransaction} onHide={handleCloseModalTransaction} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {formAccount.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
+                        {formTransaction.id ? t('common.edit') : t('common.add')} {t('accounts.title')}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group>
                             <Form.Label>{t('common.id')}</Form.Label>
-                            <Form.Control type="number" value={formAccount.id} disabled />
+                            <Form.Control type="number" value={formTransaction.id} disabled />
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>{t('common.description')}</Form.Label>
-                            <Form.Control type="text" value={formAccount.description} onChange={(event) => updateFormAccount('description', event.target.value)} />
+                            <Form.Control type="text" value={formTransaction.description} onChange={(event) => updateFormTransaction('description', event.target.value)} />
                         </Form.Group>
                         <Form.Group>
-                            <Form.Check type="checkbox" label={t('common.ignore')} checked={Boolean(formAccount.ignore)} onChange={(event) => updateFormAccount('ignore', event.target.checked)} />
+                            <Form.Label>{t('common.date')}</Form.Label>
+                            <DatePicker className='form-control' type="text" selected={formTransaction.date ? new Date(formTransaction.date) : new Date()} onChange={(value) => updateFormTransaction('date', value)} />
+                        </Form.Group>
+                        {
+                            formTransactionInvoices.length > 0 &&
+                            <>
+                                <Form.Label>{t('transactions.invoice')}</Form.Label>
+                                <Form.Group>
+                                    <select value={formTransaction.invoice_id} onChange={(event) => { updateFormTransaction('invoice_id', event.target.value) }} className="form-control">
+                                        {formTransactionInvoices}
+                                    </select>
+                                </Form.Group>
+                            </>
+                        }
+                        <Form.Group>
+                            <Form.Check type="checkbox" label={t('transactions.paid')} checked={Boolean(formTransaction.paid)} onChange={(event) => updateFormTransaction('paid', event.target.checked)} />
                         </Form.Group>
                         <Form.Group>
-                            <Form.Check type="checkbox" label={t('accounts.is_credit_card')} checked={Boolean(formAccount.is_credit_card)} onChange={(event) => updateFormAccount('is_credit_card', event.target.checked)} />
+                            <NumberFormatOriginal className="form-control" value={formTransaction.value} onChange={(event) => { updateFormTransaction('value', parseFloat(event.target.value)) }} />
                         </Form.Group>
                         <Button type="button" variant="primary" onClick={() => {
-                            saveFormAccount(formAccount)
+                            saveFormTransaction(formTransaction)
                         }}>
                             <FontAwesomeIcon icon={faSave} />
                         </Button>
                     </Form>
                 </Modal.Body>
             </Modal>
+
             <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>
@@ -634,7 +702,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         <th>
                             {t(`common.description`)}
                             <div className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { openModalAccount({}) }}>
+                                <Button type="button" variant="primary" onClick={() => { AccountModal.open({}, mainAccounts) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
                             </div>
