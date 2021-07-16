@@ -1,9 +1,9 @@
+/* eslint-disable no-loop-func */
 import "react-datepicker/dist/react-datepicker.css";
-import { DateFormat } from './DateFormat';
-import { faSync, faList, faPen, faTrash, faPlus, faSave } from '@fortawesome/free-solid-svg-icons'
+import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NumberFormat } from './NumberFormat';
-import { Table, Nav, Button, Modal, Form } from 'react-bootstrap';
+import { Table, Nav, Button } from 'react-bootstrap';
 import AccountModal from "../modals/AccountModal";
 import CrudStatusEnum from "../enums/CrudStatusEnum";
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
@@ -15,10 +15,10 @@ import imgSodexoAlimentacao from '../assets/images/sync_sodexo_alimentacao.png'
 import MessageReceiverEnum from "../enums/MessageReceiverEnum";
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ReactLoading from 'react-loading';
-import TransactionTypeEnum from "../enums/TransactionTypeEnum";
 import useWebSocket from 'react-use-websocket';
 import TransactionModal from "../modals/TransactionModal";
 import TransactionsModal from "../modals/TransactionsModal";
+import InvoicesModal from "../modals/InvoicesModal";
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
@@ -63,14 +63,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [actualYear, setActualYear] = useState('')
 
     const messageHistory = useRef([]);
-
-
-    const [modalInvoicesTitle, setModalInvoicesTitle] = useState('')
-    const [modalTableInvoicesFooter, setModalTableInvoicesFooter] = useState('')
-    const [modalTableInvoicesBody, setModalTableInvoicesBody] = useState('')
-    const [showModalInvoices, setShowModalInvoices] = useState(false);
-    const handleCloseModalInvoices = () => setShowModalInvoices(false);
-    const handleModalInvoices = () => setShowModalInvoices(true);
 
     const {
         sendJsonMessage,
@@ -152,22 +144,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     }
 
     function showInvoices(account) {
-        sendJsonMessage({
-            code: MessageReceiverEnum.INVOICES,
-            accountId: account.id
-        });
-        setModalInvoicesTitle(`${account.id}/${account.description}`)
-        setModalTableInvoicesBody(
-            <tbody>
-                <tr>
-                    <td colSpan={5}>
-                        <ReactLoading className="loading" color="#000" type={'spin'} />
-                    </td>
-                </tr>
-            </tbody>
-        )
-        setModalTableInvoicesFooter('')
-        handleModalInvoices()
+        InvoicesModal.open(account)
     }
 
     const RECEIVERS = Object.freeze({
@@ -346,42 +323,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             TransactionsModal.update(transactions)
         },
         [MessageReceiverEnum.INVOICES]: ({ invoices }) => {
-            const trList = []
-            for (const invoice of invoices) {
-                trList.push(
-                    <tr>
-                        <td>{invoice.id}</td>
-                        <td>{invoice.description}</td>
-                        <td><DateFormat value={invoice.debit_date} t={t} /></td>
-                        <td>
-                            <NumberFormat t={t} value={invoice.total} />
-                            <small className='hide-compact'>
-                                <small>
-                                    <NumberFormat t={t} value={invoice.total_negative} />
-                                </small>
-                                <small>
-                                    <NumberFormat t={t} value={invoice.total_positive} />
-                                </small>
-                            </small>
-                        </td>
-                        <td>
-                            <div className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: invoice.account.id, invoice_id: invoice.id }, invoice.account.sinvoices) }}>
-                                    <FontAwesomeIcon icon={faPlus} />
-                                </Button>
-                                <Button type="button" variant="primary" onClick={() => showTransactionsInvoice(invoice.account, invoice)}>
-                                    <FontAwesomeIcon icon={faList} />
-                                </Button>
-                            </div>
-                        </td>
-                    </tr >
-                )
-            }
-            setModalTableInvoicesBody(
-                <tbody>
-                    {trList}
-                </tbody>
-            )
+            InvoicesModal.update(invoices)
         },
         [MessageReceiverEnum.UPDATE]: () => {
             changeActualYear(actualYear)
@@ -427,33 +369,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <AccountModal.Elem t={t} accounts={mainAccounts} sendJsonMessage={sendJsonMessage} />
             <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <TransactionsModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-            <Modal show={showModalInvoices} onHide={handleCloseModalInvoices} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>{modalInvoicesTitle}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr class="active">
-                                <th>{t('common.id')}</th>
-                                <th>{t('common.description')}</th>
-                                <th>{t('invoices.debit_date')}</th>
-                                <th>{t('transactions.value')}</th>
-                                <th>
-                                    {t('common.actions')}
-                                    <div className="actions-buttons">
-                                        <Button type="button" variant="secondary" onClick={() => { }}>
-                                            <FontAwesomeIcon icon={faPlus} />
-                                        </Button>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        {modalTableInvoicesBody}
-                        {modalTableInvoicesFooter}
-                    </Table>
-                </Modal.Body>
-            </Modal>
+            <InvoicesModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <Nav variant="tabs" activeKey={actualYear}>
                 {listYears}
             </Nav>

@@ -1,3 +1,6 @@
+
+/* eslint-disable react/no-direct-mutation-state */
+/* eslint-disable import/no-anonymous-default-export */
 import { Button, Modal, Form } from 'react-bootstrap';
 import { faSave } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

@@ -1,3 +1,5 @@
+/* eslint-disable react/no-direct-mutation-state */
+/* eslint-disable import/no-anonymous-default-export */
 import { Button, Modal, Table, Form } from 'react-bootstrap';
 import { faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -59,7 +61,9 @@ class Elem extends React.Component {
     }
 
     reload() {
-        this.open(this.last.account, this.last.invoice, this.last.year, this.last.month)
+        if (this.state.show) {
+            this.open(this.last.account, this.last.invoice, this.last.year, this.last.month)
+        }
     }
 
     update(transactions) {
