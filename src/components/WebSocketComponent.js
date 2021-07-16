@@ -3,7 +3,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { faSync, faList, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NumberFormat } from '../formatters/NumberFormat';
-import { Table, Nav, Button } from 'react-bootstrap';
+import { Table, Button } from 'react-bootstrap';
 import AccountModal from "./WebSocketComponent/modals/AccountModal";
 import CrudStatusEnum from "../enums/CrudStatusEnum";
 import imgBancoCaixa from '../assets/images/sync_banco_caixa.png'
@@ -19,6 +19,7 @@ import useWebSocket from 'react-use-websocket';
 import TransactionModal from "./WebSocketComponent/modals/TransactionModal";
 import TransactionsModal from "./WebSocketComponent/modals/TransactionsModal";
 import InvoicesModal from "./WebSocketComponent/modals/InvoicesModal";
+import YearTab from "./WebSocketComponent/YearTab";
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
@@ -33,24 +34,6 @@ const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
 const now = new Date();
 
-function getListYear(fromDate) {
-    const years = [];
-    const nowYear = new Date().getFullYear();
-    const yearDiff = (nowYear - fromDate);
-    let j = 10 - yearDiff;
-    if (j <= 0) {
-        j = 1;
-    }
-    for (let i = fromDate - j; i <= fromDate; i++) {
-        years.push(i);
-    }
-    if (fromDate < nowYear) {
-        for (let i = fromDate + 1; i <= nowYear; i++) {
-            years.push(i);
-        }
-    }
-    return years;
-}
 
 let mainAccounts = []
 
@@ -59,7 +42,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [tableThead, setTableThead] = useState('')
     const [tableAccounts, setTableAccounts] = useState('')
     const [tableFooter, setTableFooter] = useState('')
-    const [listYears, setListYears] = useState('')
     const [actualYear, setActualYear] = useState('')
 
     const messageHistory = useRef([]);
@@ -70,7 +52,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         readyState,
     } = useWebSocket(socketUrl, {
         onOpen: () => {
-            changeActualYear(new Date().getFullYear())
+            YearTab.change(new Date().getFullYear())
             setCaptchaConfirmation((id, value) => {
                 sendJsonMessage({
                     code: MessageReceiverEnum.CAPTCHA,
@@ -99,29 +81,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         shouldReconnect: (closeEvent) => true,
     });
 
-    function changeActualYear(year) {
-        sendJsonMessage({
-            code: MessageReceiverEnum.YEAR,
-            year
-        });
-        const tThead = []
-        for (let month = 0; month < 12; month++) {
-            tThead.push(
-                <th key={`thead_${month}`} className={actualYear === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
-                    {t(`common.months.${month}`)} ({t('common.money_type')})
-                </th>
-            )
-        }
-        setTableThead(tThead)
-        setTableFooter('')
-        setTableAccounts(
-            <tr>
-                <td colSpan={13}>
-                    <ReactLoading className="loading" color="#000" type={'spin'} />
-                </td>
-            </tr>
-        )
-    }
 
     function syncAccount(account) {
         let body = ''
@@ -302,16 +261,24 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         },
         [MessageReceiverEnum.YEAR]: ({ year }) => {
             setActualYear(year)
-            const years = getListYear(year)
-            const lYears = []
-            for (const y of years) {
-                lYears.push(
-                    <Nav.Item>
-                        <Nav.Link eventKey={y} onSelect={() => changeActualYear(y)}>{y}</Nav.Link>
-                    </Nav.Item>
+            YearTab.update(year)
+            const tThead = []
+            for (let month = 0; month < 12; month++) {
+                tThead.push(
+                    <th key={`thead_${month}`} className={year === now.getFullYear() && month === now.getMonth() ? 'table-active' : ''}>
+                        {t(`common.months.${month}`)} ({t('common.money_type')})
+                    </th>
                 )
             }
-            setListYears(lYears)
+            setTableThead(tThead)
+            setTableFooter('')
+            setTableAccounts(
+                <tr>
+                    <td colSpan={13}>
+                        <ReactLoading className="loading" color="#000" type={'spin'} />
+                    </td>
+                </tr>
+            )
         },
         [MessageReceiverEnum.NOTIFICATIONS]: (data) => {
             setNotifications(data)
@@ -326,7 +293,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             InvoicesModal.update(invoices)
         },
         [MessageReceiverEnum.UPDATE]: () => {
-            changeActualYear(actualYear)
+            YearTab.reload()
             TransactionsModal.reload()
         }
     })
@@ -370,9 +337,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <TransactionsModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <InvoicesModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-            <Nav variant="tabs" activeKey={actualYear}>
-                {listYears}
-            </Nav>
+            <YearTab.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <Table striped bordered hover>
                 <thead>
                     <tr>
