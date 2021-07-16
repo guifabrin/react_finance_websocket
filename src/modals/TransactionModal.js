@@ -18,7 +18,7 @@ class Elem extends React.Component {
         this.sendJsonMessage = sendJsonMessage
         this.state = {
             transaction: {},
-            options: [<option>Selecionar conta</option>],
+            options: [],
             show: false
         };
         instance = this
@@ -32,7 +32,7 @@ class Elem extends React.Component {
     open(transaction, invoices) {
         this.state.transaction = transaction
         this.state.show = true
-        this.state.options = [<option>Selecionar conta</option>]
+        this.state.options = [<option>Selecionar fatura</option>]
         for (const invoice of invoices)
             this.state.options.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
         this.forceUpdate()

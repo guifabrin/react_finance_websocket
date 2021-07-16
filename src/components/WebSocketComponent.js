@@ -18,6 +18,7 @@ import ReactLoading from 'react-loading';
 import TransactionTypeEnum from "../enums/TransactionTypeEnum";
 import useWebSocket from 'react-use-websocket';
 import TransactionModal from "../modals/TransactionModal";
+import TransactionsModal from "../modals/TransactionsModal";
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
@@ -62,15 +63,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     const [actualYear, setActualYear] = useState('')
 
     const messageHistory = useRef([]);
-
-    const [modalTransactionsTitle, setModalTransactionsTitle] = useState('')
-    const [modalTransactionsType, setModalTransactionsType] = useState(0)
-    const [modalTableTransactionsHeader, setModalTableTransactionsHeader] = useState('')
-    const [modalTableTransactionsFooter, setModalTableTransactionsFooter] = useState('')
-    const [modalTableTransactionsBody, setModalTableTransactionsBody] = useState('')
-    const [showModalTransactions, setShowModalTransactions] = useState(false);
-    const handleCloseModalTransactions = () => setShowModalTransactions(false);
-    const handleModalTransactions = () => setShowModalTransactions(true);
 
 
     const [modalInvoicesTitle, setModalInvoicesTitle] = useState('')
@@ -152,91 +144,11 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
     }
 
     function showTransactionsInvoice(account, invoice) {
-        sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTIONS,
-            type: TransactionTypeEnum.INVOICE,
-            accountId: account.id,
-            invoiceId: invoice.id
-        });
-        setModalTransactionsTitle([`${account.id}/${account.description} - ${invoice.id}/${invoice.description} - `, <DateFormat value={invoice.debit_date} t={t} />])
-        setModalTransactionsType(1)
-        setModalTableTransactionsHeader(
-            <tr>
-                <th>{t('common.date')}</th>
-                <th>{t('common.description')}</th>
-                <th class="text-center">{t('transactions.value')}</th>
-                <th class="text-center">
-                    {t('common.actions')}
-                    <div className="actions-buttons">
-                        <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id, invoice_id: invoice.id }, account.sinvoices) }}>
-                            <FontAwesomeIcon icon={faPlus} />
-                        </Button>
-                    </div>
-                </th>
-            </tr>
-        )
-        setModalTableTransactionsBody(
-            <tbody>
-                <tr>
-                    <td colSpan={4}>
-                        <ReactLoading className="loading" color="#000" type={'spin'} />
-                    </td>
-                </tr>
-            </tbody>
-        )
-        setModalTableTransactionsFooter(
-            <tfoot>
-                <tr>
-                    <td colSpan="3">
-                        {t('accounts.totals_not_paid')}
-                    </td>
-                    <td>
-                        <NumberFormat t={t} value={invoice.total_negative} />
-                    </td>
-                </tr>
-                <tr>
-                    <td colSpan="3">
-                        {t('accounts.totals_paid')}
-                    </td>
-                    <td>
-                        <NumberFormat t={t} value={invoice.total_positive} />
-                    </td>
-                </tr>
-            </tfoot>
-        )
-        handleModalTransactions()
+        TransactionsModal.openInvoice(account, invoice)
     }
 
     function showTransactions(account, year, month) {
-        sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTIONS,
-            type: TransactionTypeEnum.COMMON,
-            accountId: account.id,
-            year,
-            month: month + 1
-        });
-        setModalTransactionsTitle(`${account.id}/${account.description} - ${month + 1}/${year}`)
-        setModalTransactionsType(0)
-        setModalTableTransactionsHeader(
-            <tr>
-                <th>{t('common.date')}</th>
-                <th>{t('common.description')}</th>
-                <th class="text-center">{t('transactions.value')}</th>
-                <th class="text-center">{t('transactions.paid')}</th>
-                <th class="text-center">{t('common.actions')}</th>
-            </tr>
-        )
-        setModalTableTransactionsBody(
-            <tbody>
-                <tr>
-                    <td colSpan={5}>
-                        <ReactLoading className="loading" color="#000" type={'spin'} />
-                    </td>
-                </tr>
-            </tbody>
-        )
-        setModalTableTransactionsFooter('')
-        handleModalTransactions()
+        TransactionsModal.openAccount(account, year, month)
     }
 
     function showInvoices(account) {
@@ -256,19 +168,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         )
         setModalTableInvoicesFooter('')
         handleModalInvoices()
-    }
-
-    function setPaid(transaction, paid) {
-        transaction.paid = paid
-        sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTION,
-            status: CrudStatusEnum.ADD_EDIT,
-            id: transaction.id,
-            accountId: transaction.account_id,
-            values: {
-                paid
-            }
-        });
     }
 
     const RECEIVERS = Object.freeze({
@@ -444,41 +343,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             console.log(data)
         },
         [MessageReceiverEnum.TRANSACTIONS]: ({ transactions }) => {
-            const trList = []
-            for (const transaction of transactions) {
-                const tdList = [
-                    <td><DateFormat value={transaction.date} t={t} /></td>,
-                    <td>{transaction.description}</td>,
-                    <td><NumberFormat t={t} value={transaction.value} /></td>
-                ]
-                if (modalTransactionsType === 0) {
-                    tdList.push(
-                        <td>
-                            <Form.Group>
-                                <Form.Check type="checkbox" checked={Boolean(transaction.paid)} onChange={() => setPaid(transaction, !Boolean(transaction.paid))} />
-                            </Form.Group>
-                        </td>
-                    )
-                }
-                tdList.push(
-                    <td>
-                        <div className="actions-buttons">
-                            <Button type="button" variant="warning" onClick={() => { }}>
-                                <FontAwesomeIcon icon={faPen} onClick={() => { openModalTransaction(transaction, transaction.sinvoices) }} />
-                            </Button>
-                            <Button type="button" variant="danger" onClick={() => { deleteTransaction(transaction) }}>
-                                <FontAwesomeIcon icon={faTrash} />
-                            </Button>
-                        </div>
-                    </td>
-                )
-                trList.push(<tr>{tdList}</tr>)
-            }
-            setModalTableTransactionsBody(
-                <tbody>
-                    {trList}
-                </tbody>
-            )
+            TransactionsModal.update(transactions)
         },
         [MessageReceiverEnum.INVOICES]: ({ invoices }) => {
             const trList = []
@@ -520,6 +385,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         },
         [MessageReceiverEnum.UPDATE]: () => {
             changeActualYear(actualYear)
+            TransactionsModal.reload()
         }
     })
 
@@ -552,17 +418,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             status: CrudStatusEnum.REMOVE,
             value: account
         });
-        handleCloseModalTransactions()
-    }
-
-    function deleteTransaction(transaction) {
-        sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTION,
-            id: transaction.id,
-            status: CrudStatusEnum.REMOVE,
-            accountId: transaction.account_id,
-        });
-        handleCloseModalTransactions()
     }
     return (
         <div>
@@ -571,22 +426,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
             </h2>
             <AccountModal.Elem t={t} accounts={mainAccounts} sendJsonMessage={sendJsonMessage} />
             <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-            <Modal show={showModalTransactions} onHide={handleCloseModalTransactions} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        {modalTransactionsTitle}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Table striped bordered hover>
-                        <thead>
-                            {modalTableTransactionsHeader}
-                        </thead>
-                        {modalTableTransactionsBody}
-                        {modalTableTransactionsFooter}
-                    </Table>
-                </Modal.Body>
-            </Modal>
+            <TransactionsModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <Modal show={showModalInvoices} onHide={handleCloseModalInvoices} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>{modalInvoicesTitle}</Modal.Title>
