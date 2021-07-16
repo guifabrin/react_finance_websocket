@@ -34,7 +34,6 @@ const SOCKET_URL = 'ws://localhost:8765/'
 const PATH = btoa('guilherme.fabrin@gmail.com:$2y$10$8SIHjbAwDS/Cy4fVWwoPf.FM19.KrHAPrUrdWOp8ZGQdwLD/7Bxc2')
 const now = new Date();
 
-
 let mainAccounts = []
 
 export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation, setConfigSender, setUser, setReadyState, setNotificationSender }) => {
@@ -93,18 +92,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         });
     }
 
-    function showTransactionsInvoice(account, invoice) {
-        TransactionsModal.openInvoice(account, invoice)
-    }
-
-    function showTransactions(account, year, month) {
-        TransactionsModal.openAccount(account, year, month)
-    }
-
-    function showInvoices(account) {
-        InvoicesModal.open(account)
-    }
-
     const RECEIVERS = Object.freeze({
         [MessageReceiverEnum.USER]: ({ user }) => {
             setUser(user)
@@ -128,7 +115,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                         for (const invoice of account.invoices[month]) {
                             values.push(
                                 <div key={`subtotal_${account.id}_${invoice.id}_${month}`}>
-                                    <Button type="button" variant="link" onClick={() => showTransactionsInvoice(account, invoice)}>
+                                    <Button type="button" variant="link" onClick={() => TransactionsModal.openInvoice(account, invoice)}>
                                         <NumberFormat t={t} value={invoice.total} />
                                         <small className='hide-compact'>
                                             <small>
@@ -147,10 +134,10 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                     } else {
                         values.push(
                             <div key={`subtotal_${account.id}_${month}`} className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id }) }}>
+                                <Button type="button" variant="primary" onClick={() => { TransactionModal.open({ date: new Date(), value: 0, account_id: account.id }) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
-                                <Button type="button" variant="link" onClick={() => showTransactions(account, YearTab.year, month)}>
+                                <Button type="button" variant="link" onClick={() => TransactionsModal.openAccount(account, YearTab.year, month)}>
                                     <NumberFormat t={t} value={account.values[month]} />
                                     <small className='hide-compact'>
                                         <NumberFormat t={t} value={account.values_not_paid[month]} />
@@ -189,7 +176,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     {
                                         Boolean(account.is_credit_card) &&
                                         <>
-                                            <Button type="button" variant="secondary" onClick={() => showInvoices(account)}>
+                                            <Button type="button" variant="secondary" onClick={() => InvoicesModal.open(account)}>
                                                 <FontAwesomeIcon icon={faList} />
                                             </Button>
                                             <Button type="button" variant="secondary" onClick={() => { }}>
@@ -200,7 +187,7 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
                                     {
 
                                         !Boolean(account.is_credit_card) &&
-                                        <Button type="button" variant="primary" onClick={() => { openModalTransaction({ account_id: account.id }) }}>
+                                        <Button type="button" variant="primary" onClick={() => { TransactionModal.open({ date: new Date(), value: 0, account_id: account.id }) }}>
                                             <FontAwesomeIcon icon={faPlus} />
                                         </Button>
                                     }
@@ -304,20 +291,6 @@ export const WebSocketComponent = ({ t, setNotifications, setCaptchaConfirmation
         setSocketUrl(SOCKET_URL + PATH)
     }, [])
     setReadyState(readyState)
-
-    function openModalTransaction(transaction, invoices = []) {
-        if (!transaction.date) {
-            transaction.date = new Date()
-        } else {
-            if (typeof transaction.date == "string") {
-                transaction.date = new Date(transaction.date)
-            }
-        }
-        if (!transaction.value) {
-            transaction.value = 0
-        }
-        TransactionModal.open(transaction, invoices)
-    }
 
     function deleteAccount(account) {
         sendJsonMessage({
