@@ -20,6 +20,7 @@ import imgBancoInter from '../../assets/images/sync_banco_inter.png'
 import imgBancoItau from '../../assets/images/sync_banco_itau.png'
 import imgBancoNuconta from '../../assets/images/sync_banco_nuconta.png'
 import imgSodexoAlimentacao from '../../assets/images/sync_sodexo_alimentacao.png'
+import InvoiceModal from './modals/InvoiceModal';
 
 const imgRef = {
     'sync_banco_caixa': imgBancoCaixa,
@@ -60,6 +61,7 @@ class Elem extends React.Component {
             body
         });
     }
+
     delete(account) {
         this.sendJsonMessage({
             code: MessageReceiverEnum.ACCOUNT,
@@ -140,8 +142,9 @@ class Elem extends React.Component {
                                     account.automated_ref &&
                                     <>
                                         <img src={imgRef[account.automated_ref]} alt="" className="accountImage" />
-                                        <Button type="button" variant="primary" onClick={() => this.sync(account)}>
-                                            <FontAwesomeIcon icon={faSync} />
+                                        <Button type="button" variant="primary" onClick={() => this.sync(account)} disabled={account.sync === 'init'}>
+                                            {account.sync === 'init' && <FontAwesomeIcon icon={faSync} spin />}
+                                            {account.sync !== 'init' && <FontAwesomeIcon icon={faSync} />}
                                         </Button>
                                     </>
                                 }
@@ -151,7 +154,7 @@ class Elem extends React.Component {
                                         <Button type="button" variant="secondary" onClick={() => InvoicesModal.open(account)}>
                                             <FontAwesomeIcon icon={faList} />
                                         </Button>
-                                        <Button type="button" variant="secondary" onClick={() => { }}>
+                                        <Button type="button" variant="secondary" onClick={() => { InvoiceModal.open({ account_id: account.id }, account) }}>
                                             <FontAwesomeIcon icon={faPlus} />
                                         </Button>
                                     </>
@@ -247,7 +250,7 @@ class Elem extends React.Component {
                         <th>
                             {t(`common.description`)}
                             <div className="actions-buttons">
-                                <Button type="button" variant="primary" onClick={() => { AccountModal.open({}, this.accounts) }}>
+                                <Button type="button" variant="primary" onClick={() => { AccountModal.open({}, this.state.accounts) }}>
                                     <FontAwesomeIcon icon={faPlus} />
                                 </Button>
                             </div>

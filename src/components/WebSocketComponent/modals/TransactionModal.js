@@ -33,11 +33,20 @@ class Elem extends React.Component {
     }
 
     open(transaction, invoices) {
+        if (transaction.id) {
+            transaction.date = new Date(transaction.date)
+        } else {
+            transaction.date = new Date()
+        }
         this.state.transaction = transaction
         this.state.show = true
-        this.state.options = [<option>Selecionar fatura</option>]
-        for (const invoice of invoices)
-            this.state.options.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
+        if (invoices) {
+            this.state.options = [<option>Selecionar fatura</option>]
+            for (const invoice of invoices)
+                this.state.options.push(<option key={`invoice_option_${invoice.id}`} value={invoice.id}>{invoice.id}/{invoice.description}</option>)
+        } else {
+            this.state.options = []
+        }
         this.forceUpdate()
     }
 
@@ -58,6 +67,7 @@ class Elem extends React.Component {
         const clone = Object.assign({}, this.state.transaction);
         clone[property] = value
         this.state.transaction = clone
+        this.forceUpdate()
     }
 
     render() {

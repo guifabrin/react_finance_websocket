@@ -5,6 +5,7 @@ import { faSave } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import CrudStatusEnum from '../../../enums/CrudStatusEnum';
 import MessageReceiverEnum from '../../../enums/MessageReceiverEnum';
+import NumberFormatOriginal from 'react-number-format';
 import React from 'react';
 
 let t = null
@@ -52,6 +53,7 @@ class Elem extends React.Component {
         const clone = Object.assign({}, this.state.account);
         clone[property] = value
         this.state.account = clone
+        this.forceUpdate()
     }
 
     render() {
@@ -79,11 +81,14 @@ class Elem extends React.Component {
                         <Form.Group>
                             <Form.Check type="checkbox" label={t('accounts.is_credit_card')} checked={Boolean(account.is_credit_card)} onChange={(event) => this.update('is_credit_card', event.target.checked)} />
                         </Form.Group>
-
+                        <Form.Group>
+                            <Form.Label>{t('accounts.value_error')}</Form.Label>
+                            <NumberFormatOriginal className="form-control" value={account.value_error} onChange={(event) => { this.update('value_error', parseFloat(event.target.value)) }} />
+                        </Form.Group>
                         {
-                            this.state.options.length > 0 &&
+                            this.state.options.length > 0 && Boolean(account.is_credit_card) &&
                             <>
-                                <Form.Label>{t('accounts.prefer_debit_account_id')}</Form.Label>
+                                <Form.Label>{t('accounts.prefer_debit_account')}</Form.Label>
                                 <Form.Group>
                                     <select value={account.prefer_debit_account_id} onChange={(event) => { this.update('prefer_debit_account_id', event.target.value) }} className="form-control">
                                         {this.state.options}

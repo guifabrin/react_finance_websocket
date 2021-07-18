@@ -203,9 +203,7 @@ function App({ t }) {
       </Navbar>
       <Container fluid>
         <Row>
-          <Col xs={2} lg={2}>
-          </Col>
-          <Col xs={10} lg={10}>
+          <Col xs={12} lg={12}>
             <WebSocketComponent.Elem t={t} setters={setters} />
           </Col>
         </Row>

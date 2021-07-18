@@ -10,6 +10,7 @@ import TransactionModal from "./WebSocketComponent/modals/TransactionModal";
 import TransactionsModal from "./WebSocketComponent/modals/TransactionsModal";
 import useWebSocket from 'react-use-websocket';
 import YearTab from "./WebSocketComponent/YearTab";
+import InvoiceModal from "./WebSocketComponent/modals/InvoiceModal";
 
 
 const SOCKET_URL = 'ws://localhost:8765/'
@@ -19,7 +20,6 @@ let mainAccounts = []
 let mainSendJsonMessage = null
 
 const WebSocketComponent = ({ t, setters }) => {
-    debugger
     const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
     const messageHistory = useRef([]);
 
@@ -53,8 +53,15 @@ const WebSocketComponent = ({ t, setters }) => {
         [MessageReceiverEnum.NOTIFICATIONS]: (data) => {
             setters.notifications(data)
         },
-        [MessageReceiverEnum.AUTOMATED]: (data) => {
-            console.log(data)
+        [MessageReceiverEnum.AUTOMATED]: ({ account_id, status }) => {
+            for (const index in mainAccounts) {
+                const account = mainAccounts[index]
+                if (account.id === account_id) {
+                    account.sync = status
+                }
+                mainAccounts[index] = account
+            }
+            AccountsTable.update(mainAccounts)
         },
         [MessageReceiverEnum.TRANSACTIONS]: ({ transactions }) => {
             TransactionsModal.update(transactions)
@@ -65,6 +72,7 @@ const WebSocketComponent = ({ t, setters }) => {
         [MessageReceiverEnum.UPDATE]: () => {
             YearTab.reload()
             TransactionsModal.reload()
+            InvoicesModal.reload()
         }
     })
     messageHistory.current = useMemo(() => {
@@ -83,6 +91,7 @@ const WebSocketComponent = ({ t, setters }) => {
             <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <TransactionsModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <InvoicesModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
+            <InvoiceModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <YearTab.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <AccountsTable.Elem t={t} sendJsonMessage={sendJsonMessage} />
         </div>

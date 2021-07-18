@@ -11,5 +11,6 @@ export default Object.freeze({
     TRANSACTION: 9,
     NOTIFICATION: 10,
     ACCOUNT: 11,
-    UPDATE: 12
+    UPDATE: 12,
+    INVOICE: 13
 })

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-direct-mutation-state */
 /* eslint-disable import/no-anonymous-default-export */
 import { Button, Modal, Table } from 'react-bootstrap';
-import { faPlus, faList } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faList, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react';
 import ReactLoading from 'react-loading';
@@ -11,6 +11,7 @@ import MessageReceiverEnum from '../../../enums/MessageReceiverEnum';
 import CrudStatusEnum from '../../../enums/CrudStatusEnum';
 import { NumberFormat } from '../../../formatters/NumberFormat';
 import { DateFormat } from '../../../formatters/DateFormat';
+import InvoiceModal from './InvoiceModal';
 
 let t = null
 let instance = null
@@ -26,6 +27,7 @@ class Elem extends React.Component {
             table_header: null,
             table_body: null,
             table_footer: null,
+            account: {},
             show: false
         };
         instance = this
@@ -49,18 +51,18 @@ class Elem extends React.Component {
         });
     }
 
-    delete(transaction) {
+    delete(invoice) {
         this.sendJsonMessage({
-            code: MessageReceiverEnum.TRANSACTION,
-            id: transaction.id,
+            code: MessageReceiverEnum.INVOICE,
+            id: invoice.id,
             status: CrudStatusEnum.REMOVE,
-            accountId: transaction.account_id,
+            accountId: invoice.account_id,
         });
     }
 
     reload() {
         if (this.state.show) {
-            this.open(this.last.account, this.last.invoice, this.last.year, this.last.month)
+            this.open(this.state.account)
         }
     }
 
@@ -97,6 +99,12 @@ class Elem extends React.Component {
                             }>
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>
+                            <Button type="button" variant="warning" onClick={() => InvoiceModal.open(invoice, invoice.account)}>
+                                <FontAwesomeIcon icon={faPen} />
+                            </Button>
+                            <Button type="button" variant="danger" onClick={() => this.delete(invoice)}>
+                                <FontAwesomeIcon icon={faTrash} />
+                            </Button>
                             <Button type="button" variant="primary" onClick={() => TransactionsModal.openInvoice(invoice.account, invoice)}>
                                 <FontAwesomeIcon icon={faList} />
                             </Button>
@@ -114,6 +122,7 @@ class Elem extends React.Component {
     }
 
     open(account) {
+        this.state.account = account
         this.state.show = true
         this.sendJsonMessage({
             code: MessageReceiverEnum.INVOICES,
