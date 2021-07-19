@@ -88,7 +88,7 @@ class Elem extends React.Component {
                 if (account.is_credit_card) {
                     for (const invoice of account.invoices[month]) {
                         values.push(
-                            <div key={`subtotal_${account.id}_${invoice.id}_${month}`}>
+                            <div key={`subtotal_${account.id}_${invoice.id}_${month}`} className="actions-buttons">
                                 <Button type="button" variant="link" onClick={() => TransactionsModal.openInvoice(account, invoice)}>
                                     <NumberFormat t={t} value={invoice.total} />
                                     <small className='hide-compact'>

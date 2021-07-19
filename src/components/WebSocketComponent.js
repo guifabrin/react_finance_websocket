@@ -11,6 +11,7 @@ import TransactionsModal from "./WebSocketComponent/modals/TransactionsModal";
 import useWebSocket from 'react-use-websocket';
 import YearTab from "./WebSocketComponent/YearTab";
 import InvoiceModal from "./WebSocketComponent/modals/InvoiceModal";
+import RepeatTransactionModal from "./WebSocketComponent/modals/RepeatTransactionModal";
 
 
 const SOCKET_URL = 'ws://localhost:8765/'
@@ -94,6 +95,7 @@ const WebSocketComponent = ({ t, setters }) => {
             <InvoiceModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <YearTab.Elem t={t} sendJsonMessage={sendJsonMessage} />
             <AccountsTable.Elem t={t} sendJsonMessage={sendJsonMessage} />
+            <RepeatTransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
         </div>
     );
 };

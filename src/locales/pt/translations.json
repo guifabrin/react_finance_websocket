@@ -41,8 +41,6 @@
         "description_max_50": "Descri\u00e7\u00e3o n\u00e3o pode ter mais que 50 caracteres",
         "date": "Data",
         "in": "em",
-        "date_init": "Data Inicial",
-        "date_end": "Data Fim",
         "debit_date": "Data de D\u00e9bito",
         "search": "Pesquisar",
         "months": [
@@ -88,8 +86,6 @@
     "invoices": {
         "title": "Faturas",
         "invoice": "fatura",
-        "date_init": "Data de in\u00edcio",
-        "date_end": "Data de fim",
         "debit_date": "Data de d\u00e9bito",
         "confirm_destroy": "Confirma\u00e7\u00e3o para remover fatura",
         "confirmation_text": "Tem certeza que deseja remover a fatura {id}\/{description}?"

@@ -35,12 +35,8 @@ class Elem extends React.Component {
         this.state.account = account
         if (invoice.id) {
             invoice.debit_date = new Date(invoice.debit_date)
-            invoice.date_init = new Date(invoice.date_init)
-            invoice.date_end = new Date(invoice.date_end)
         } else {
             invoice.debit_date = new Date()
-            invoice.date_init = new Date()
-            invoice.date_end = new Date()
         }
         this.state.invoice = invoice
         this.state.show = true
@@ -49,8 +45,6 @@ class Elem extends React.Component {
 
     save() {
         const clone = Object.assign({}, this.state.invoice);
-        clone.date_init = `${clone.date_init.getFullYear()}-${((clone.date_init.getMonth() + 1) + '').padStart(2, '0')}-${(clone.date_init.getDate() + '').padStart(2, '0')}`
-        clone.date_end = `${clone.date_end.getFullYear()}-${((clone.date_end.getMonth() + 1) + '').padStart(2, '0')}-${(clone.date_end.getDate() + '').padStart(2, '0')}`
         clone.debit_date = `${clone.debit_date.getFullYear()}-${((clone.debit_date.getMonth() + 1) + '').padStart(2, '0')}-${(clone.debit_date.getDate() + '').padStart(2, '0')}`
         this.sendJsonMessage({
             code: MessageReceiverEnum.INVOICE,
@@ -91,14 +85,6 @@ class Elem extends React.Component {
                         <Form.Group>
                             <Form.Label>{t('invoices.debit_date')}</Form.Label>
                             <DatePicker className='form-control' type="text" selected={invoice.debit_date ? new Date(invoice.debit_date) : new Date()} onChange={(value) => this.update('debit_date', value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>{t('invoices.date_init')}</Form.Label>
-                            <DatePicker className='form-control' type="text" selected={invoice.date_init ? new Date(invoice.date_init) : new Date()} onChange={(value) => this.update('date_init', value)} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>{t('invoices.date_end')}</Form.Label>
-                            <DatePicker className='form-control' type="text" selected={invoice.date_end ? new Date(invoice.date_end) : new Date()} onChange={(value) => this.update('date_end', value)} />
                         </Form.Group>
                         <Button type="button" variant="primary" onClick={() => this.save()}>
                             <FontAwesomeIcon icon={faSave} />

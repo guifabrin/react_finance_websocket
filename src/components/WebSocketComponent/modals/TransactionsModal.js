@@ -1,7 +1,7 @@
 /* eslint-disable react/no-direct-mutation-state */
 /* eslint-disable import/no-anonymous-default-export */
 import { Button, Modal, Table, Form } from 'react-bootstrap';
-import { faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faPen, faTrash, faSync } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import CrudStatusEnum from '../../../enums/CrudStatusEnum';
 import MessageReceiverEnum from '../../../enums/MessageReceiverEnum';
@@ -11,6 +11,7 @@ import TransactionTypeEnum from '../../../enums/TransactionTypeEnum';
 import { DateFormat } from '../../../formatters/DateFormat';
 import ReactLoading from 'react-loading';
 import TransactionModal from './TransactionModal';
+import RepeatTransactionModal from './RepeatTransactionModal';
 
 let t = null
 let instance = null
@@ -91,6 +92,9 @@ class Elem extends React.Component {
                         </Button>
                         <Button type="button" variant="danger" onClick={() => { this.delete(transaction) }}>
                             <FontAwesomeIcon icon={faTrash} />
+                        </Button>
+                        <Button type="button" variant="primary" onClick={() => { RepeatTransactionModal.open(transaction) }}>
+                            <FontAwesomeIcon icon={faSync} />
                         </Button>
                     </div>
                 </td>
