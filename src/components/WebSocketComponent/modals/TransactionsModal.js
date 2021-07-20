@@ -99,7 +99,7 @@ class Elem extends React.Component {
                     </div>
                 </td>
             )
-            trList.push(<tr>{tdList}</tr>)
+            trList.push(<tr key={`transactions_${transaction.id}`}>{tdList}</tr>)
         }
         this.state.table_body = (
             <tbody>
@@ -171,8 +171,8 @@ class Elem extends React.Component {
         )
         if (invoice) {
             this.state.table_footer = (
-                <tfoot>
-                    <tr>
+                <tfoot key={-1}>
+                    <tr key={0}>
                         <td colSpan="3">
                             {t('accounts.totals_not_paid')}
                         </td>
@@ -180,7 +180,7 @@ class Elem extends React.Component {
                             <NumberFormat t={t} value={invoice.total_negative} />
                         </td>
                     </tr>
-                    <tr>
+                    <tr key={1}>
                         <td colSpan="3">
                             {t('accounts.totals_paid')}
                         </td>

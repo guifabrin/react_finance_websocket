@@ -60,7 +60,7 @@ class Elem extends React.Component {
         this.state.list_year = []
         for (const year of years) {
             this.state.list_year.push(
-                <Nav.Item>
+                <Nav.Item key={`year_${year}`}>
                     <Nav.Link eventKey={year} onSelect={() => this.change(year)}>{year}</Nav.Link>
                 </Nav.Item>
             )

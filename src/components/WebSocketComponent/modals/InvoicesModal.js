@@ -70,7 +70,7 @@ class Elem extends React.Component {
         const trList = []
         for (const invoice of invoices) {
             trList.push(
-                <tr>
+                <tr key={`invoice_${invoice.id}`}>
                     <td>{invoice.id}</td>
                     <td>{invoice.description}</td>
                     <td><DateFormat value={invoice.debit_date} t={t} /></td>

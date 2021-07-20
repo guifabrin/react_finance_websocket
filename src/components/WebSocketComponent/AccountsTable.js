@@ -191,30 +191,30 @@ class Elem extends React.Component {
         ]
         for (let month = 0; month < 12; month++) {
             tdListPaid.push(
-                <th className={YearTab.isNow(month) ? 'table-active' : ''}>
+                <th key={`totals_${month}`} className={YearTab.isNow(month) ? 'table-active' : ''}>
                     <NumberFormat t={t} value={sumTotals[month]} />
                 </th>
             )
             tdListNotPaid.push(
-                <th className={YearTab.isNow(month) ? 'table-active' : ''}>
+                <th key={`totals_not_paid_${month}`} className={YearTab.isNow(month) ? 'table-active' : ''}>
                     <NumberFormat t={t} value={sumTotalsNotPaid[month]} />
                 </th>
             )
             tdListSumPaid.push(
-                <th className={YearTab.isNow(month) ? 'table-active' : ''}>
+                <th key={`totals_paid_${month}`} className={YearTab.isNow(month) ? 'table-active' : ''}>
                     <NumberFormat t={t} value={sumTotals[month] + sumTotalsNotPaid[month]} />
                 </th>
             )
         }
         this.state.table_footer = (
-            <tfoot>
-                <tr>
+            <tfoot key={-1}>
+                <tr key={0}>
                     {tdListPaid}
                 </tr>
-                <tr>
+                <tr key={1}>
                     {tdListNotPaid}
                 </tr>
-                <tr>
+                <tr key={2}>
                     {tdListSumPaid}
                 </tr>
             </tfoot>

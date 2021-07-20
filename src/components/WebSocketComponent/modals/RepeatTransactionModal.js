@@ -67,7 +67,7 @@ class Elem extends React.Component {
             clone.paid = false
             this.state.transactions.push(clone)
             trList.push(
-                <tr>
+                <tr key={`repeat_${i}`}>
 
                     <td>
                         <DateFormat value={clone.date} t={t} />
@@ -109,6 +109,7 @@ class Elem extends React.Component {
                             <Form.Control type="text" value={transaction.description} onChange={(event) => this.update('description', event.target.value)} disabled />
                         </Form.Group>
                         <Form.Group>
+                            <Form.Label>{t('common.repeat')}</Form.Label>
                             <NumberFormatOriginal className="form-control" value={this.state.count} onChange={(event) => { this.update(event.target.value) }} />
                         </Form.Group>
                         <Table>
