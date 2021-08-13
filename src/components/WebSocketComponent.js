@@ -12,6 +12,7 @@ import useWebSocket from "react-use-websocket";
 import YearTab from "./WebSocketComponent/YearTab";
 import InvoiceModal from "./WebSocketComponent/modals/InvoiceModal";
 import RepeatTransactionModal from "./WebSocketComponent/modals/RepeatTransactionModal";
+import { t } from "../i18n";
 
 const SOCKET_URL = "ws://localhost:8765/";
 const PATH = btoa(
@@ -21,7 +22,7 @@ const PATH = btoa(
 let mainAccounts = [];
 let mainSendJsonMessage = null;
 
-const WebSocketComponent = ({ t, setters }) => {
+const WebSocketComponent = ({ setters }) => {
   const [socketUrl, setSocketUrl] = useState(SOCKET_URL + PATH);
   const messageHistory = useRef([]);
 
@@ -84,17 +85,16 @@ const WebSocketComponent = ({ t, setters }) => {
     <div>
       <h2>{t("accounts.title")}</h2>
       <AccountModal.Elem
-        t={t}
         accounts={mainAccounts}
         sendJsonMessage={sendJsonMessage}
       />
-      <TransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <TransactionsModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <InvoicesModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <InvoiceModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <YearTab.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <AccountsTable.Elem t={t} sendJsonMessage={sendJsonMessage} />
-      <RepeatTransactionModal.Elem t={t} sendJsonMessage={sendJsonMessage} />
+      <TransactionModal.Elem sendJsonMessage={sendJsonMessage} />
+      <TransactionsModal.Elem sendJsonMessage={sendJsonMessage} />
+      <InvoicesModal.Elem sendJsonMessage={sendJsonMessage} />
+      <InvoiceModal.Elem sendJsonMessage={sendJsonMessage} />
+      <YearTab.Elem sendJsonMessage={sendJsonMessage} />
+      <AccountsTable.Elem sendJsonMessage={sendJsonMessage} />
+      <RepeatTransactionModal.Elem sendJsonMessage={sendJsonMessage} />
     </div>
   );
 };

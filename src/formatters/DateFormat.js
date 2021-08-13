@@ -1,6 +1,5 @@
-import Moment from 'moment';
-export const DateFormat = ({ value, t }) => {
-    return (
-        <span> {Moment(value).format(t('formats.date'))} </span>
-    )
-}
+import Moment from "moment";
+import { t } from "../i18n";
+export const DateFormat = ({ value }) => {
+  return <span> {Moment(value).format(t("formats.date"))} </span>;
+};

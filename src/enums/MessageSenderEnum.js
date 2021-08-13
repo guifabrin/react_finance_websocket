@@ -1,3 +1,3 @@
 export default Object.freeze({
-    AUTH: 0
-})
+  AUTH: 0,
+});

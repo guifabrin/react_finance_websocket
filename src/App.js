@@ -1,5 +1,5 @@
 import "./App.scss";
-import "./i18n";
+import { t } from "./i18n";
 import {
   Container,
   Row,
@@ -18,7 +18,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { NumberFormat } from "./formatters/NumberFormat";
 import { ReadyState } from "react-use-websocket";
 import { useState } from "react";
-import { withTranslation } from "react-i18next";
 import logo from "./assets/images/icon.png";
 import WebSocketComponent from "./components/WebSocketComponent";
 
@@ -52,7 +51,7 @@ const themes = [
   "zephyr",
 ];
 
-function App({ t }) {
+function App() {
   const [notificationsTransactions, setNotificationsTransactions] =
     useState("");
   const [notificationsInvoices, setNotificationsInvoices] = useState("");
@@ -87,7 +86,6 @@ function App({ t }) {
     WebSocketComponent.setConfig(2, value);
     setTheme(value);
   }
-
   const setters = {
     user: (main_user) => {
       setUserMain(main_user);
@@ -138,7 +136,7 @@ function App({ t }) {
             {t("common.imported")} {transaction.description}
             <small>
               {" "}
-              <NumberFormat t={t} value={transaction.value} />
+              <NumberFormat value={transaction.value} />
             </small>
           </NavDropdown.Item>
         );
@@ -155,7 +153,7 @@ function App({ t }) {
             {t("common.imported")} {invoice.description}
             <small>
               {" "}
-              <NumberFormat t={t} value={invoice.total} />
+              <NumberFormat value={invoice.total} />
             </small>
           </NavDropdown.Item>
         );
@@ -283,7 +281,7 @@ function App({ t }) {
       <Container fluid>
         <Row>
           <Col xs={12} lg={12}>
-            <WebSocketComponent.Elem t={t} setters={setters} />
+            <WebSocketComponent.Elem setters={setters} />
           </Col>
         </Row>
       </Container>
@@ -291,4 +289,4 @@ function App({ t }) {
   );
 }
 
-export default withTranslation()(App);
+export default App;

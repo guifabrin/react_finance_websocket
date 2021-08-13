@@ -1,4 +1,4 @@
 export default Object.freeze({
-    COMMON: 0,
-    INVOICE: 1
-})
+  COMMON: 0,
+  INVOICE: 1,
+});
