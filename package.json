@@ -11,7 +11,7 @@
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "12.1.2",
     "@testing-library/user-event": "13.2.1",
-    "bootstrap": "5.1.1",
+    "bootstrap": "5.1.2",
     "create-react-class": "15.7.0",
     "dotenv": "10.0.0",
     "i18next": "21.2.4",
