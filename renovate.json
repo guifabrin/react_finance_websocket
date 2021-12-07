@@ -1,11 +1,3 @@
 {
-  "extends": [
-    "config:base"
-  ],
-  "patch": {
-    "automerge": true
-  },
-  "pin": {
-    "automerge": true
-  }
+    "extends": ["github>guifabrin/renovate-config"]
 }
